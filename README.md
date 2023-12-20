@@ -4,7 +4,7 @@ No clickbait, ads, links, rabbit holes, opinions...no mercy! 😁
 
 ## Features
  - Gets headlines from trusted APIs and websites.
- - Uses rules ± an LLM (GPT) to filter out headlines that are opinion, clickbait, or ones you saw yesterday.
+ - Uses rules and an LLM (optional) to de-deduplicate topics and remove headlines that are opinion, clickbait, or news you saw yesterday.
  - Forecasts your local weather.
  - Alerts you if your favorite NBA team is playing tonight.
  - Enlightens you with a quote or a joke.
