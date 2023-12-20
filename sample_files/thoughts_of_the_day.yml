@@ -1,0 +1,6 @@
+# This shared file contains quotes that any subscriber's issue can sample from, for the Thought of the Day section
+# The subscriber can opt out by setting add_shared_thoughts=False from their config_SUBSCRIBER_NAME.yml
+# Edit or expand the list as you like.
+quotes:
+  - I have an oscillating fan at my house. It goes back and forth. It looks like the fan is saying 'no.' So I like to ask it questions that a fan would say 'no' to! Do you keep my hair in place? Do you keep my documents in order? ― Mitch Hedberg
+  - How much deeper would the ocean be if sponges didn't live there? ― Steven Wright

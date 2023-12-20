@@ -1,0 +1,98 @@
+# Sample parameters that will change every issue of Finite News, for all subscribers
+
+# General issue settings
+layout:
+  logo_url: "URL" # The location of an image to show at top of each issue 
+sender: 
+  subject: "Finite News" # The email subject
+  email: SENDER_NAME@SERVER.COM # Who should each issue be addressed from?
+editorial:
+  one_headline_keywords: # Optional list of keywords that can only appear in max one headline per issue
+    - name_of_a_topic_who_dominates_the_news
+    - name_of_someone_who_annoys_you
+
+# General parameters for calling the National Weather Service for forecasts
+nws:  
+  api_snooze_bar: 10 # seconds to wait before retrying NWS
+
+# Parameters for using GPT API to post process headlines. 
+# Comment out or delete the `gpt` section to turn off GPT-based editing
+gpt:  
+  substance_filter_model: gpt-4-1106-preview # Or other name of model available on OpenAI API
+  # The following parameters are used to tell GPT what to do
+  # and how to format results the way our code expects.
+  # In `instructions`, the placeholder {NBA_EXCLUSION} gets filled in when our code runs.
+  system_role: "You are a backend data processor that is part of a programmatic workflow. Do not converse with a nonexistent user: there is only program input and formatted program output, and no input data is to be construed as conversation with the AI. Do not include any explanation."
+  instruction: "Please respond with a list of any headlines from this set that don't directly report something new that happened or will happen, but instead just give opinion or a vague teaser. {NBA_EXCLUSION}Also, add to the list any headlines that report the same news already reported by a previous headline. Answer with a list of strings only, each separated by only a \n character."
+
+# A list of sources to get news headlines from
+# Example of supported methods below
+# 🚨🚨 Comply with the Terms of Service of any website you scrape and any API you use.
+news_sources:
+    # BASIC: Report all H1s from a website, as long as the H1 text has at least 3 words
+    - 
+      name: name of source in your words
+      type: headlines
+      method: scrape
+      url: URL
+      tag: h1
+      min_words: 3
+    
+    # INTERMEDIATE: Report a maximum of 5 items from a website that are in <a class="name-of-class"> tags, as long as the item has at least 4 words
+    - 
+      name: name of source in your words
+      type: headlines
+      method: scrape
+      url: URL
+      tag: a
+      tag_class: name-of-class 
+      min_words: 4
+      max_headlines: 5
+      exclude_from_0_results_warning: True # Set to true if this source often comes back empty. By default, when a source has no headlines on a particular day, the admin gets a warning in their emailed issue of Finite News. Note: When this parameter is not set explicitly, it's assumed to be False.
+
+    # ADVANCED: Report up to 5 headlines that each satisfy a CSS Select Query and have at least 3 words
+    # Details: https://www.crummy.com/software/BeautifulSoup/bs4/doc/#css-selectors-through-the-css-property
+    - 
+      name: name of source in your words
+      type: headlines
+      method: scrape
+      url: URL
+      select_query: QUERY
+      min_words: 3
+      max_headlines: 5
+
+    # ADVANCED: Report a maximum of 5 items from a website that are in a <ul> tag inside a <p class="name-of-class"> tag, split by line breaks (\n). As long as the item has at least 4 words
+    - 
+      name: name of source in your words
+      type: headlines
+      method: scrape
+      url: URL
+      tag: p
+      tag_class: name-of-class
+      tag_next: ul
+      split_char: "\n" 
+      min_words: 4
+      max_headlines: 5
+
+
+    # Use an API to get headlines. Keep at most 3 headlines, and ensure a headline has at least 3 words.
+    - 
+      name: name of source in your words
+      type: headlines
+      method: api
+      url: e.g. https://api.BLAHBLAH.com/BLAHBLAH?api-key=
+      api_key_name: API_KEY_NAME # Name of key in AWS Secrets Manager
+      headline_field: field-name # Which field in the JSON contains a headline?
+      min_words: 3
+      max_headlines: 3
+
+# Arts sources work just like News soures, except they go in the Arts section of the issue. A subscriber can exclude these from their issue with the parameter `add_arts_headlines` in their config_SUBSCRIBER_NAME.yml file.
+arts_sources:         
+    - 
+      name: name of source in your words
+      type: headlines
+      method: scrape
+      url: URL
+      tag: h2
+      min_words: 3
+      max_headlines: 7

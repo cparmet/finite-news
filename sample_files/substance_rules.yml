@@ -1,0 +1,67 @@
+# This file contains 3 types of rules that are used to identify headlines 
+# that aren't really reporting something that happened yesterday.
+# They may be clickbait, opinion, or website noise
+
+# Below are sample rules. I've found they do more than GPT to improve quality of headlines.
+# Edit or expand the list as you like. It helps to update them over time.
+# Note: When a single quote mark is required, always use '. 
+# The special quote marks like ’ get cleaned out of headlines before these rules are applied.
+
+cant_begin_with: 
+  - why
+  - "how "
+  - "who "
+  - "what "
+  - see the
+  - what we
+  - what to know
+  - what the
+  - what it
+  - "what's"
+  - "what's"
+  - watch
+  - explain
+  - inside the
+  - look in
+  - a look
+  - share your thoughts
+  - "podcast:"
+  - fact-check
+  - fact check
+  - factcheck
+  - "listen "
+  - "does "
+  - "should "
+  - "could "
+  - "how "
+  - "would "
+
+cant_contain:
+  - latest updates
+  - "here's what"
+  - "here's the"
+  - here are
+  - "here is "
+  - annotat
+  - habits
+  - tips
+  - maps and videos
+  - things to do
+  - ": how"
+  - ": who"
+  - ": what"
+  - ": where"
+  - ": why"
+  - "map:"
+  - "this week's tv"
+  - what to watch
+  - quick guide
+  - a guide
+  - confidential news tip
+  - movies to stream
+  - top stories
+  - "?" # If headline has a quesiton mark, such as at the end, it rarely contains news by itself.
+  - " tv "
+
+cant_end_with:
+  - know.
