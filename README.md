@@ -1,61 +1,55 @@
 🗞️ Extra extra! This is Finite News: the mindful, AI-assisted newspaper.   
   
 No clickbait, ads, links, rabbit holes, opinions...no mercy! 😁
-
-## Features
+  
+## 👀 Features
  - Gets headlines from trusted APIs and websites.
- - Uses rules and an LLM (optional) to de-deduplicate topics and remove headlines that are opinion, clickbait, or news you saw yesterday.
+ - Applies an LLM and rules to consolidate headlines that are about the same topic and remove opinions, clickbait, and news you saw yesterday.
  - Forecasts your local weather.
- - Alerts you if your favorite NBA team is playing tonight.
- - Enlightens you with a quote or a joke.
+ - Alerts you if your favorite NBA team plays tonight.
+ - Shares a joke or quote.
   
 ## 🤔 Motivation
 I happily pay for subscriptions to quality news sources and support essential journalism! But increasingly news websites and newsletters are filled with distractions, clickbait, pop-ups, and attention vampires. I made Finite News to deliver a personalized daily news email with less noise, no ads, no links, and with strict limits on the volume of content.
   
 It collects the latest happenings, gets a local weather forecast, finds out if a favorite NBA team is playing today, and shares a joke or thought of day. The headlines are filtered by rules and, optionally, a large language model (GPT) to reduce junk and focus on learning what's happening in the world.
-
-## 🥄 Installing
-1. See "Designing your newspaper" below and create the necessary files.
-2. Create an AWS account and a Sagemaker instance.
-3. Make an S3 bucket dedicated to Finite News. If you haven't done it before, think of S3 as a Google Drive account.
-    - Add the files you created in "Designing your newspaper"
-4. Set up AWS Secrets Manager. Create a "secret", a collection of secrets, called `fn_secrets`.
-    - Add a secret called `BUCKET_PATH`. It should include the URL to your S3 bucket.
-    - If you don't name your secret "fn_secrets", or your region isn't "us-east-1", you'll want to edit the notebook to pass your values to the function `get_fn_secret()`
-5. Create an account on sendgrid.com. This lets you send emails in the notebook (via an API).
+  
+## 📰 Make your own newspaper
+### How it works
+Finite News is set up to run as a scheduled job in Sagemaker. I've found this to be a relatively easy and super cheap way to run a notebook every day.
+  
+### Concepts to know
+- **Publication:** The general processes that are shared by every issue and subscription.
+- **Subscription:** The customizations that personalize Finite News for a single person (subscriber).
+- **Issue:** One email delivered to one subscriber.
+  
+### Installing
+1. First, you need to create data files that configure everything about Finite News. See "Designing your newspaper" below.
+2. Create an AWS account and a [Sagemaker domain](https://aws.amazon.com/pm/sagemaker).
+3. Clone this repo as a directory in your Sagemaker environment.
+4. Make a new [AWS S3 bucket](https://aws.amazon.com/s3/).
+5. Add to S3 the files you created in "Designing your newspaper"
+6. Set up [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/). Create a "secret" (really it's a collection of secrets) called `fn_secrets`.
+    - Add a new item to `fn_secrets` called `BUCKET_PATH` with the value of the URL to your S3 bucket.
+    - 💡 If you don't name your secret "fn_secrets", or your region isn't "us-east-1", you'll want to edit the notebook to pass your values to the function `get_fn_secret()`
+7. Create an account on sendgrid.com. This lets you send emails in the notebook (via an API).
     - Add your api key to your AWS Secrets Manager under `fn_secrets` as `SENDGRID_API_KEY`
-6. (Optional) Create an API account on openai.com, to use GPT to filter headlines
+8. (Optional) Create an API account on openai.com, to use GPT to filter headlines
     - Add your api key to your AWS Secrets Manager under `fn_secrets` as `OPENAI_API_KEY`
-7. Test the notebook in Sagemaker. 
-    - Select a Data Science 2.0 image with Python 3.8. Newer images and newer Python versions may work too! But the Data Science 1.0 image probably won't work.
-    - Set Parameters at the top of the notebook to `DEV_MODE = True` etc so no email is sent. It will write the day's issues to a file in the notebook directory instead
-8. Run the notebook as a scheduled job. This is easy!
+9. Test the notebook `finite_news.ipynb` in Sagemaker.
+    - Select a Data Science 2.0 image with Python 3.8. Newer images and newer Python versions may work too! But the "Data Science" (1.0) image may not.
+    - In the Parameters cell, set `DEV_MODE = True` etc so no email is sent. It will write the day's issues to a file in the notebook directory instead.
+    - Inspect the file.
+10. Run the notebook as a [scheduled job](https://docs.aws.amazon.com/sagemaker/latest/dg/create-notebook-auto-run-studio.html). This is easy!
     - Set Parameters at the top of the notebook to production mode, which at minimum requires `DEV_MODE = False`
     - Click the `Create a notebook job` icon in the menu bar.
-    - Configure your scheduled job. Make sure the image is the same as what ran in your test run of the notebook (e.g. Data Science 2.0 and Python 3.8). See [Sagemaker notebook jobs](https://docs.aws.amazon.com/sagemaker/latest/dg/create-notebook-auto-run-studio.html) for more options.
-
-## 💸 Costs
-At the time of writing, with 4 subscribers getting an issue once a day, it costs me:
-- AWS: 1-2 USD a month
-- Sendgrid: Free
-- Open AI api (optional): 0.5 USD a month with `gpt-4-1106-preview` model
+    - Set the schedule for how often it should run. If you want to publish daily issues, select Day and a time in GMT.
+    - 💡 Make sure it uses the same image (Data Science 2.0 etc) that worked in your test.
   
-With fewer subscribers, it's cheaper. With more, it's more. 😁  
-  
-### </> About the code base
-This notebook is set up to run as a scheduled job in Sagemaker. I've found this to be a relatively easy and super cheap way to run a notebook every day.   
-  
-**All code is contained in the notebook.** Sagemaker uses Papermill to turn notebooks into jobs. One limitation is that Papermill jobs cannot import Python scripts from the local directory: it just airlifts the notebook into a scheduled job. So all code that runs in the job must be either in the notebook or imported from the SageMaker image. 
-  
-The notebook defines 3 concepts:
-- **Subscription:** A customized version of Finite News that a single person receives daily. 
-- **Issue:** One email delivered to one subscriber on one day.
-- **Publication:** The internal processes and general paramaters that are shared by every issue and subscription.
-
-## 📰 Designing your newspaper
+### Designing your newspaper
 🚨🚨 Comply with the Terms of Service of your sources and APIs.  
   
-Add the following files to your S3 Bucket. See the `samples_files` folder for examples of each.
+Create the following files. See the `samples_files` folder for examples. Later, your files will go in your AWS S3 Bucket.
 - `publication_config.yml`: General choices for how to run Finite News
     - This includes setting up individual news sources. See the sample `publication_config.yml` for instructions.
     - If you need an API key to access a particular news source, add `api_key_name: {NAME OF YOUR API KEY}` under that source in `publication_config.yml`. Then add a new secret in your AWS Secrets Manager, under your `fn_secrets`, that is called {NAME OF YOUR API KEY}, like in publication_config.yml, and set the secret value to your api key.
@@ -66,6 +60,12 @@ Add the following files to your S3 Bucket. See the `samples_files` folder for ex
 - `template.htm`: The layout for the email. The parts in `[[ ]]` are populated by the code at runtime.
 - `substance_rules.yml`: Policies for identifying "low substance" headlines to always drop. You can add rules to remove headlines on topics you don't want to hear about or recurring noise. 
 - `thoughts_of_the_day.yml`: (optional) Shared list of jokes and quotes sampled for Thought of the Day. To enable, in `config_*.yml` file(s) set `add_shared_thoughts=True`.
-
-## ❤️ Contributing new features, filing bug reports, and asking questions
-You're so sweet, thank you! These are extremely appreciated! The best way is to create a new Issue or Pull request in this repository.
+  
+### Costs
+💸 At the time of writing, with 4 subscribers getting daily issues, it costs ~2 USD a month.
+- AWS: 1-2 USD a month
+- Open AI api (optional): 0.5 USD a month with `gpt-4-1106-preview` model
+- Sendgrid: Free
+  
+## ❤️ Bugs, questions, and contributions
+You're awesome, thank you! The best way is to create a new Issue or Pull request in this repository.
