@@ -6,7 +6,7 @@ I happily pay for subscriptions to quality news sources and support essential jo
 I made Finite News to deliver a lean, personalized daily news email. Its goal is to reduce distractions and focus on what's happening in the world.
   
 ## 👀 Features
- - Gets headlines from trusted APIs and websites.
+ - Gets headlines from your trusted APIs and websites.
  - Applies an LLM and rules to consolidate headlines that are about the same topic and remove opinions, clickbait, and news you saw yesterday.
  - Enforces strict limits on the volume of news, and leaves out ads and links.
  - Forecasts your local weather.
