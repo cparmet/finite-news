@@ -1,7 +1,5 @@
 🗞️ Extra extra! This is Finite News: the mindful, AI-assisted newspaper.   
   
-No clickbait, ads, links, rabbit holes, opinions...no mercy! 😁
-  
 ## 👀 Features
  - Gets headlines from trusted APIs and websites.
  - Applies an LLM and rules to consolidate headlines that are about the same topic and remove opinions, clickbait, and news you saw yesterday.
@@ -10,9 +8,9 @@ No clickbait, ads, links, rabbit holes, opinions...no mercy! 😁
  - Shares a joke or quote.
   
 ## 🤔 Motivation
-I happily pay for subscriptions to quality news sources and support essential journalism! But increasingly news websites and newsletters are filled with distractions, clickbait, pop-ups, and attention vampires. I made Finite News to deliver a personalized daily news email with less noise, no ads, no links, and with strict limits on the volume of content.
+I happily pay for subscriptions to quality news sources and support essential journalism! But increasingly news websites and newsletters are filled with distractions, clickbait, pop-ups, and attention vampires.
   
-It collects the latest happenings, gets a local weather forecast, finds out if a favorite NBA team is playing today, and shares a joke or thought of day. The headlines are filtered by rules and, optionally, a large language model (GPT) to reduce junk and focus on learning what's happening in the world.
+I made Finite News to deliver a personalized daily news email with strict limits on the volume of content, no ads, and no links. The goal is to reduce noise, avoid rabbit holes, and help me focus on quickly learning what's happening in the world.
   
 ## 📰 Make your own newspaper
 ### How it works
