@@ -16,7 +16,7 @@ It collects the latest happenings, gets a local weather forecast, finds out if a
   
 ## 📰 Make your own newspaper
 ### How it works
-Finite News is set up to run as a scheduled job in Sagemaker. I've found this to be a relatively easy and super cheap way to run a notebook every day.
+Finite News is set up to run as a scheduled job in AWS Sagemaker.
   
 ### Concepts to know
 - **Publication:** The general processes that are shared by every issue and subscription.
