@@ -3,12 +3,12 @@
 ## 🤔 Motivation
 I happily pay for subscriptions to quality news sources and support essential journalism! But increasingly news websites and newsletters are filled with clickbait, pop-ups, and attention vampires.
   
-I made Finite News to deliver a personalized daily news email with strict limits, no ads, and no links. Its goal is to reduce distractions and focus on what's happening in the world.
+I made Finite News to deliver a lean, personalized daily news email. Its goal is to reduce distractions and focus on what's happening in the world.
   
 ## 👀 Features
  - Gets headlines from trusted APIs and websites.
  - Applies an LLM and rules to consolidate headlines that are about the same topic and remove opinions, clickbait, and news you saw yesterday.
- - Enforces strict limits on the volume of content.
+ - Enforces strict limits on the volume of news, and leaves out ads and links.
  - Forecasts your local weather.
  - Alerts you if your favorite NBA team plays tonight.
  - Shares a joke or quote.
