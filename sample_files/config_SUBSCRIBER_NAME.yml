@@ -29,7 +29,8 @@ sources:
     - name of event source to include
   events_frequency: # How often to include it in issues?
     frequency: every_other_week # weekly or every_other_week (odd week number)
-    day_of_week: Monday # Full day name, case insensitive
+    day_of_week: Monday # Spell out full day name, case insensitive. Note day = at time scheduled job is run in UTC
+    eow_odd: False # When frequency is "every_other_week", True = use odd week numbers of year. False = even
 
 # The newspaper slogan that goes under the logo in each issue.
 # One slogan from the list is selected at random each day.
