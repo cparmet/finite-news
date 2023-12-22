@@ -7,11 +7,13 @@ I made Finite News to deliver a lean, personalized daily news email. Its goal is
   
 ## 👀 Features
  - Gets headlines from your trusted APIs and websites.
- - Applies an LLM and rules to consolidate headlines that are about the same topic and remove opinions, clickbait, and news you saw yesterday.
  - Enforces strict limits on the volume of news, and leaves out ads and links.
+ - Applies an LLM and rules to consolidate headlines that are about the same topic and remove opinions, clickbait, and news you saw yesterday.
  - Forecasts your local weather.
- - Alerts you if your favorite NBA team plays tonight.
- - Shares a joke or quote.
+ - Optionally
+     - Alerts you if your favorite NBA team plays tonight.
+     - Lists upcoming events of interest.
+     - Shares a joke or quote.
   
 ## 📰 Make your own newspaper
 ### How it works

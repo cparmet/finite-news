@@ -86,13 +86,21 @@ news_sources:
       min_words: 3
       max_headlines: 3
 
-# Arts sources work just like News soures, except they go in the Arts section of the issue. A subscriber can exclude these from their issue with the parameter `add_arts_headlines` in their config_SUBSCRIBER_NAME.yml file.
-arts_sources:         
+# Optional, get upcoming events
+events_sources:
     - 
       name: name of source in your words
-      type: headlines
+      type: events_calendar
       method: scrape
-      url: URL
-      tag: h2
-      min_words: 3
-      max_headlines: 7
+      url_base: URL with placeholders for {PAGE}, {END_DATE}, and {START_DATE}
+      window: 30 # How many days ahead to look on the calendar
+      max_events: 100
+      event_item_tag: li
+      event_list_class: css class to find the lists of events
+      title_class: css class that has the event title (optional)
+      venue_class: css class that has the event location/venue (optional)
+      dates_class: css class that has the event dates (optional)
+      description_class: css class that has a text description of the event (optional)
+      image_html_class: css class that contains a thumbnail image about the event (optional)
+      link_url_class: css class that has a url link for the event (optional)
+      link_url_child_key: css class that has the name of the element after the link_url_class where the url is stored (optional)

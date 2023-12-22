@@ -25,14 +25,17 @@ editorial:
   add_shared_thoughts: False # If True, in addition to list of thoughts_of_the_day below, the issue will also sample the "Thought of the Day" quotes from the shared `thoughts_of_the_day.yml` file.
   last_headlines_file: last_headlines_SUBSCRIBER_NAME.txt # The name of the file on S3 to cache headlines from the last issue. Used to ensure that Finite News doesn't report any headlines the user already saw in the last issue.
 sources:
-  add_arts_headlines: False # Add headlines from "Arts" sources in publication_config ? 
+  events_sources:  # Optional
+    - name of event source to include
+  events_frequency: # How often to include it in issues?
+    frequency: every_other_week # weekly or every_other_week (odd week number)
+    day_of_week: Monday # Full day name, case insensitive
 
 # The newspaper slogan that goes under the logo in each issue.
 # One slogan from the list is selected at random each day.
 # Edit or expand the list as you like.
 slogans:
   - 1/100th the News That’s Fit to Print.
-  - Enable your ad blocker to continue.
 
 # A list of quotes or jokes. The section "Thought of Day: will sample one each day.
 # See also the parameter above `add_shared_thoughts`.
