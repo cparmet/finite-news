@@ -37,7 +37,16 @@ news_sources:
       url: URL
       tag: h1
       min_words: 3
-    
+
+    # BASIC: Report all text from <a> from a website, as long as the a text contains a phrase or keyword (case insensitive)
+    -
+      name: name of source in your words
+      type: headlines
+      method: scrape
+      url: URL
+      tag: a
+      must_contain: "phrase"
+
     # INTERMEDIATE: Report a maximum of 5 items from a website that are in <a class="name-of-class"> tags, as long as the item has at least 4 words
     - 
       name: name of source in your words
