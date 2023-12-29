@@ -10,14 +10,15 @@ sources:
   news_categories: # Match to desired `source` | `category` values in publisher_config
     - World
     - US
-  events_sources:  # Optional
-    - name of event source to include
-  events_frequency: # How often to include it in issues?
-    frequency: every_other_week # weekly or every_other_week (odd week number)
-    day_of_week: Monday # Spell out full day name, case insensitive. Note day = at time scheduled job is run in UTC
-    eow_odd: False # When frequency is "every_other_week", True = use odd week numbers of year. False = even
+  events: # Optional
+      sources:  # Optional
+        - name of event source to include
+      frequency: # How often to include it in issues?
+        frequency: every_other_week # monthly (see below for example), weekly, every_other_week
+        day_of_week: Monday # Spell out full day name, case insensitive. Note day = at time scheduled job is run in UTC
+        eow_odd: False # When frequency is "every_other_week", True = use odd week numbers of year. False = even
   stocks: # blank for None.
-    frequency: monthly
+    frequency: monthly # monthly, weekly, every_other_week (see above for eow example)
     day_of_month: 26 # In UTC as of time notebook is executed. Blank = 1
     tickers: # one row for each plot. Helpful to separate stocks with similar prices onto different plots.
       - TICKER1, TICKER2
