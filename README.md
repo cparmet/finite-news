@@ -64,10 +64,10 @@ Create the following files. See the `samples_files` folder for examples. Later, 
 - `thoughts_of_the_day.yml`: (optional) Shared list of jokes and quotes sampled for Thought of the Day. To enable, in `config_*.yml` file(s) set `add_shared_thoughts=True`.
   
 ### Costs
-💸 At the time of writing, with 4 subscribers getting daily issues, it costs ~2 USD a month.
-- AWS: 1-2 USD a month
-- Open AI api (optional): 0.5 USD a month with `gpt-4-1106-preview` model
-- Sendgrid: Free
+💸 At the time of writing, publishing FiniteNews to 5 daily subscribers costs around 2 USD a month.
+- AWS SageMaker, S3: $1 per month
+- OpenAI API (optional): $1 per month with `gpt-4-1106-preview` model
+- Sendgrid: Free at this volume of emails
   
 ## ❤️ Bugs, questions, and contributions
-You're awesome, thank you! The best way is to create a new Issue or Pull request in this repository.
+You're awesome, thank you! The best way is to create a new Issue or Pull Request.
