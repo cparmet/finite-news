@@ -4,7 +4,6 @@
 layout:
   logo_url: "URL" # The location of an image to show at top of each issue 
 sender: 
-  subject: "Finite News" # The email subject
   email: SENDER_NAME@SERVER.COM # Who should each issue be addressed from?
 editorial:
   one_headline_keywords: # Optional list of keywords that can only appear in max one headline per issue

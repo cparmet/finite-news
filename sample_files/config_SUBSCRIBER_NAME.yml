@@ -4,6 +4,7 @@ email: SUBSCRIBER_NAME@SERVER.COM
 admin: True # Append technical logs (such as exceptions) at the end of the issue email? Deleting this line also sets the value to False.
 # Customize content
 editorial:
+  subject: "Finite News" # The email subject
   add_shared_thoughts: False # If True, in addition to list of thoughts_of_the_day below, the issue will also sample the "Thought of the Day" quotes from the shared `thoughts_of_the_day.yml` file.
   last_headlines_file: last_headlines_SUBSCRIBER_NAME.txt # The name of the file on S3 to cache headlines from the last issue. Used to ensure that Finite News doesn't report any headlines the user already saw in the last issue.
 sources:
