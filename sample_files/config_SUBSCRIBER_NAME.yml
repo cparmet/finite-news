@@ -8,21 +8,29 @@ editorial:
   add_shared_thoughts: False # If True, in addition to list of thoughts_of_the_day below, the issue will also sample the "Thought of the Day" quotes from the shared `thoughts_of_the_day.yml` file.
   last_headlines_file: last_headlines_SUBSCRIBER_NAME.txt # The name of the file on S3 to cache headlines from the last issue. Used to ensure that Finite News doesn't report any headlines the user already saw in the last issue.
 sources:
-  news_categories: # Match to desired `source` | `category` values in publisher_config
+  news_categories: # Which categories of sources from publication_config should this issue inclue?
     - World
     - US
-  events: # Optional
+    - My Town Name
+    - ...
+  events_sources: # Optional
       sources:  # Optional
-        - name of event source to include
+        - name of event source from publication_config
+        - ...
       frequency: # How often to include it in issues?
         frequency: every_other_week # monthly (see below for example), weekly, every_other_week
         day_of_week: Monday # Spell out full day name, case insensitive. Note day = at time scheduled job is run in UTC
         eow_odd: False # When frequency is "every_other_week", True = use odd week numbers of year. False = even
+  help_wanted_sources: # blank None
+      sources:
+        - name of help wanted source from publication_config
+        - ...
   stocks: # blank for None.
     frequency: monthly # monthly, weekly, every_other_week (see above for eow example)
     day_of_month: 26 # In UTC as of time notebook is executed. Blank = 1
     tickers: # one row for each plot. Helpful to separate stocks with similar prices onto different plots.
       - TICKER1, TICKER2
+      - TICKER3, TICKER4, TICKER5
 nba_teams:  # Track any NBA teams? If none, delete or comment out this section.
     - Knicks
 

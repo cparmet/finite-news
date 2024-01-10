@@ -95,6 +95,7 @@ news_sources:
       max_headlines: 3
 
 # Optional, get upcoming events
+# This example parses a paginated web site (page 1, 2, 3...) that lists upcoming events
 events_sources:
     - 
       name: name of source in your words
@@ -112,3 +113,16 @@ events_sources:
       image_html_class: css class that contains a thumbnail image about the event (optional)
       link_url_class: css class that has a url link for the event (optional)
       link_url_child_key: css class that has the name of the element after the link_url_class where the url is stored (optional)
+
+# Optional, set up sources to be in a help wanted section
+# This example uses an alert style scrape: if a certain hyperlink is newly present on a web page, copy the link.
+help_wanted_sources:
+  -
+      name: name of source in your words
+      type: alert_new
+      method: scrape
+      url: URL
+      tag: a
+      must_contain: "Text we're looking for"
+      max_headlines: 1
+      alert_preface: New listings!
