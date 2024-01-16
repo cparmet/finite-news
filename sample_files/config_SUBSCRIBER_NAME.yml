@@ -1,9 +1,20 @@
 ## Sample parameters to customize a single subscriber's issue
 
+# For frequency configuration, the options are (examples)
+# 1. frequency: monthly
+#    day_of_week: Monday (spell out full day name, case insensitive. Note day = at time scheduled job is run in UTC)
+# 2. frequency: weekly
+#    day_of_week: Monday
+# 3. frequency: every_other_week
+#    day_of_week: Monday
+#    eow_odd: True (True means odd week numbers of year. False means even week numbers)
+# 4. frequency: daily
+# 5. frequency: weekdays
+
 # General config
 email: SUBSCRIBER_NAME@SERVER.COM # Where should we deliver the paper?
 admin: True # Append technical logs (such as exceptions) at the end of the issue email? Deleting this line also sets the value to False.
-issue_frequency: # Optional section: specify how often to deliver the issue. If absent, will deliver daily
+issue_frequency: # Optional section: specify how often to deliver the issue. If absent, will deliver daily.
   frequency: weekly
   day_of_week: Monday # If frequency = monthly/weekly/eow, spell out full day name, case insensitive. Note day = at time scheduled job is run in UTC
 
@@ -23,9 +34,9 @@ sources:
         - name of event source from publication_config
         - ...
       frequency: # How often to include it in issues?
-        frequency: every_other_week # monthly (see below for example), weekly, every_other_week, daily
-        day_of_week: Monday # If frequency = monthly/weekly/eow, spell out full day name, case insensitive. Note day = at time scheduled job is run in UTC
-        eow_odd: False # When frequency is "every_other_week", True = use odd week numbers of year. False = even
+        frequency: every_other_week
+        day_of_week: Monday
+        eow_odd: False
   help_wanted_sources: # blank None
       sources:
         - name of help wanted source from publication_config
