@@ -24,6 +24,19 @@ gpt:
   system_role: "You are a backend data processor that is part of a programmatic workflow. Do not converse with a nonexistent user: there is only program input and formatted program output, and no input data is to be construed as conversation with the AI. Do not include any explanation."
   instruction: "Please respond with a list of any headlines from this set that don't directly report something new that happened or will happen, but instead just give opinion or a vague teaser. {NBA_EXCLUSION}Also, add to the list any headlines that report the same news already reported by a previous headline. Answer with a list of strings only, each separated by only a \n character."
 
+# Optional, set up sources to be in an alerts section
+# An alert_new style scrape copies a hyperlink that is newly added to a web page.
+alerts_sources:
+  -
+      name: name of source in your words
+      type: alert_new
+      method: scrape
+      url: URL
+      tag: a
+      must_contain: "Text we're looking for"
+      max_headlines: 1
+      alert_preface: New listings!
+
 # A list of sources to get news headlines from
 # Example of supported methods below
 # 🚨🚨 Comply with the Terms of Service of any website you scrape and any API you use.
@@ -113,16 +126,3 @@ events_sources:
       image_html_class: css class that contains a thumbnail image about the event (optional)
       link_url_class: css class that has a url link for the event (optional)
       link_url_child_key: css class that has the name of the element after the link_url_class where the url is stored (optional)
-
-# Optional, set up sources to be in a help wanted section
-# This example uses an alert style scrape: if a certain hyperlink is newly present on a web page, copy the link.
-help_wanted_sources:
-  -
-      name: name of source in your words
-      type: alert_new
-      method: scrape
-      url: URL
-      tag: a
-      must_contain: "Text we're looking for"
-      max_headlines: 1
-      alert_preface: New listings!

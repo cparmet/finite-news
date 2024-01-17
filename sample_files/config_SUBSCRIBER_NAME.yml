@@ -24,24 +24,25 @@ editorial:
   add_shared_thoughts: False # If True, in addition to list of thoughts_of_the_day below, the issue will also sample the "Thought of the Day" quotes from the shared `thoughts_of_the_day.yml` file.
   last_headlines_file: last_headlines_SUBSCRIBER_NAME.txt # The name of the file on S3 to cache headlines from the last issue. Used to ensure that Finite News doesn't report any headlines the user already saw in the last issue.
 sources:
+  # all sections that follow are optional. Delete to remove the section
+  alerts_sources:
+      sources:
+        - name of alerts source from publication_config
+        - ...
   news_categories: # Which categories of sources from publication_config should this issue inclue?
     - World
     - US
     - My Town Name
     - ...
-  events_sources: # Optional
-      sources:  # Optional
+  events_sources:
+      sources:
         - name of event source from publication_config
         - ...
       frequency: # How often to include it in issues?
         frequency: every_other_week
         day_of_week: Monday
         eow_odd: False
-  help_wanted_sources: # blank None
-      sources:
-        - name of help wanted source from publication_config
-        - ...
-  stocks: # blank for None.
+  stocks:
     frequency: monthly # see above for options
     day_of_month: 26 # In UTC as of time notebook is executed. Blank = 1
     tickers: # one row for each plot. Helpful to separate stocks with similar prices onto different plots.
