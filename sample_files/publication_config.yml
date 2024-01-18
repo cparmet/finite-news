@@ -34,7 +34,7 @@ alerts_sources:
       url: URL
       tag: a
       must_contain: "Text we're looking for"
-      max_headlines: 1
+      max_items: 1
       alert_preface: New listings!
 
 # A list of sources to get news headlines from
@@ -48,7 +48,7 @@ news_sources:
       method: scrape
       url: URL
       tag: h1
-      min_words: 3
+      min_words: 3 # Dump page noise like "Advertisement" or author names
 
     # BASIC: Report all text from <a> from a website, as long as the a text contains a phrase or keyword (case insensitive)
     -
