@@ -48,6 +48,8 @@ sources:
     tickers: # one row for each plot. Helpful to separate stocks with similar prices onto different plots.
       - TICKER1, TICKER2
       - TICKER3, TICKER4, TICKER5
+  image_categories:
+    - Universe
 nba_teams:  # Track any NBA teams? If none, delete or comment out this section.
     - Knicks
 

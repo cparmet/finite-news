@@ -44,6 +44,7 @@ news_sources:
     # BASIC: Report all H1s from a website, as long as the H1 text has at least 3 words
     - 
       name: name of source in your words
+      category: Universe
       type: headlines
       method: scrape
       url: URL
@@ -53,6 +54,7 @@ news_sources:
     # BASIC: Report all text from <a> from a website, as long as the a text contains a phrase or keyword (case insensitive)
     -
       name: name of source in your words
+      category: World
       type: headlines
       method: scrape
       url: URL
@@ -62,6 +64,7 @@ news_sources:
     # INTERMEDIATE: Report a maximum of 5 items from a website that are in <a class="name-of-class"> tags, as long as the item has at least 4 words
     - 
       name: name of source in your words
+      category: Canada
       type: headlines
       method: scrape
       url: URL
@@ -75,6 +78,7 @@ news_sources:
     # Details: https://www.crummy.com/software/BeautifulSoup/bs4/doc/#css-selectors-through-the-css-property
     - 
       name: name of source in your words
+      category: Tacoma
       type: headlines
       method: scrape
       url: URL
@@ -85,6 +89,7 @@ news_sources:
     # ADVANCED: Report a maximum of 5 items from a website that are in a <ul> tag inside a <p class="name-of-class"> tag, split by line breaks (\n). As long as the item has at least 4 words
     - 
       name: name of source in your words
+      category: My Neighborhood
       type: headlines
       method: scrape
       url: URL
@@ -99,6 +104,7 @@ news_sources:
     # Use an API to get headlines. Keep at most 3 headlines, and ensure a headline has at least 3 words.
     - 
       name: name of source in your words
+      category: US
       type: headlines
       method: api
       url: e.g. https://api.BLAHBLAH.com/BLAHBLAH?api-key=
@@ -126,3 +132,19 @@ events_sources:
       image_html_class: css class that contains a thumbnail image about the event (optional)
       link_url_class: css class that has a url link for the event (optional)
       link_url_child_key: css class that has the name of the element after the link_url_class where the url is stored (optional)
+
+# Optional, get images from web
+image_sources:
+    # This example first scrapes a contents page, then gets the first item (detail page) thats linked from there, scrapes the image from that detail page
+    -
+      name: name of source in your words
+      category: Universe
+      type: image_url
+      method: scrape
+      url: url
+      tag: a
+      specify_request_headers: True # Optional, if a website blocks the request()
+      detail_page_root: base image_url where detail link are under
+      detail_img_number: 2 # 1st = 1, not 0
+      add_http_img: True # Optional, Does src in img tag need to be prepended with "http:"?
+      max_items: 1
