@@ -50,8 +50,11 @@ sources:
       - TICKER3, TICKER4, TICKER5
   image_categories:
     - Universe
-nba_teams:  # Track any NBA teams? If none, delete or comment out this section.
-    - Knicks
+sports: # Optional section and subsections, get headlines about upcoming games?
+    nba_teams:
+        - Knicks # Use the mascot name
+    nhl_teams:
+        - Buffalo, Islanders, Minnesota, Montréal # Use the place name, except for NY teams use the Mascot
 
 # Configure the forecast, or delete section to omit
 forecast:

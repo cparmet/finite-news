@@ -12,7 +12,7 @@ I made Finite News to deliver a lean, personalized daily news email. Its goal is
  - Forecasts your local weather.
  - Updates you on stock prices.
  - Optionally
-     - Alerts you if your favorite NBA team plays tonight.
+     - Alerts you if your favorite NBA or NHL team plays tonight.
      - Lists upcoming events of interest.
      - Shares a joke or quote.
   
