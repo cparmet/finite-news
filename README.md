@@ -8,7 +8,7 @@ I made Finite News to deliver a lean, personalized daily news email. Its goal is
 ## 👀 Features
  - Gives you headlines from your trusted APIs and websites.
  - Enforces strict limits on the volume of news, and leaves out ads and links.
- - Applies an LLM and rules to consolidate headlines that are about the same topic and remove opinions, clickbait, and news you saw yesterday.
+ - Applies a large language model (LLM) and rules to consolidate headlines that are about the same topic and remove opinions, clickbait, and news you saw yesterday.
  - Forecasts your local weather.
  - Updates you on stock prices.
  - Optionally
