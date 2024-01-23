@@ -51,7 +51,7 @@ news_sources:
       tag: h1
       min_words: 3 # Dump page noise like "Advertisement" or author names
 
-    # BASIC: Report all text from <a> from a website, as long as the a text contains a phrase or keyword (case insensitive)
+    # BASIC: Report all text from <a> from a website, as long as the a text contains a phrase or keyword (case insensitive).
     -
       name: name of source in your words
       category: World
@@ -74,7 +74,7 @@ news_sources:
       max_headlines: 5
       exclude_from_0_results_warning: True # Set to true if this source often comes back empty. By default, when a source has no headlines on a particular day, the admin gets a warning in their emailed issue of Finite News. Note: When this parameter is not set explicitly, it's assumed to be False.
 
-    # ADVANCED: Report up to 5 headlines that each satisfy a CSS Select Query and have at least 3 words
+    # ADVANCED: Report up to 5 headlines that each satisfy a CSS Select Query and have at least 3 words. And always remove from the headlines a phrase that follows a colon
     # Details: https://www.crummy.com/software/BeautifulSoup/bs4/doc/#css-selectors-through-the-css-property
     - 
       name: name of source in your words
@@ -85,6 +85,7 @@ news_sources:
       select_query: QUERY
       min_words: 3
       max_headlines: 5
+      remove_text: ": phrase to remove"
 
     # ADVANCED: Report a maximum of 5 items from a website that are in a <ul> tag inside a <p class="name-of-class"> tag, split by line breaks (\n). As long as the item has at least 4 words
     - 
