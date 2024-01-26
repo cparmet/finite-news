@@ -42,6 +42,13 @@ sources:
         frequency: every_other_week
         day_of_week: Monday
         eow_odd: False
+  mbta: # List of routes you want alerts for
+    -
+      frequency: weekdays # Optional. Only report alerts on certain days of week
+      route: Red # Required. Options are 'id' values from https://api-v3.mbta.com/routes
+      stations: # Required. List of stations on the route you want alerts for. Can get from the URL like https://www.mbta.com/stops/place-sstat, or id or parent_station nested id values from https://api-v3.mbta.com/stops
+        - place-sstat # South Station
+      direction_id: 1 # Required. 1 for inbound, 0 for outbound
   stocks:
     frequency: monthly # see above for options
     day_of_month: 26 # In UTC as of time notebook is executed. Blank = 1
