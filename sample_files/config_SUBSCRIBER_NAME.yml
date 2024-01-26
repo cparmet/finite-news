@@ -44,6 +44,7 @@ sources:
         eow_odd: False
   mbta: # List of routes you want alerts for
     -
+      frequency: weekdays # Optional. Only report alerts on certain days of week
       route: Red # Required. Options are 'id' values from https://api-v3.mbta.com/routes
       stations: # Required. List of stations on the route you want alerts for. Can get from the URL like https://www.mbta.com/stops/place-sstat, or id or parent_station nested id values from https://api-v3.mbta.com/stops
         - place-sstat # South Station
