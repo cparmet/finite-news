@@ -49,9 +49,9 @@ news_sources:
       method: scrape
       url: URL
       tag: h1
-      min_words: 3 # Dump page noise like "Advertisement" or author names
+      min_words: 4 # Dump page noise like "Advertisement" or author names
 
-    # BASIC: Report all text from <a> from a website, as long as the a text contains a phrase or keyword (case insensitive).
+    # BASIC: Report a max of 3 new <a> from a website, as long as the a text contains a phrase or keyword (case insensitive).
     -
       name: name of source in your words
       category: World
@@ -59,7 +59,27 @@ news_sources:
       method: scrape
       url: URL
       tag: a
+      min_words: 4
+      max_headlines: 3
       must_contain: "phrase"
+
+    # INTERMEDIATE: Report 1 new h3 that contains a phrase, doesn't contain other phrases. Preface the headline with an emoji and phrase.
+    -
+      name: name of source in your words
+      category: Lobster Fisheries Monthly Stats
+      type: headlines
+      method: scrape
+      url: URL
+      tag: h3
+      max_headlines: 1
+      min_words: 4
+      must_contain: lobster
+      cant_contain:
+          - fish
+          - flounder
+          - crab
+      preface: "🦞 Last Month's Stats: "
+
 
     # INTERMEDIATE: Report a maximum of 5 items from a website that are in <a class="name-of-class"> tags, as long as the item has at least 4 words
     - 
