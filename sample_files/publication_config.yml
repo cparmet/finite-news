@@ -156,7 +156,7 @@ events_sources:
 
 # Optional, get images from web
 image_sources:
-    # This example first scrapes a contents page, then gets the first item (detail page) thats linked from there, scrapes the image from that detail page
+    # This example first scrapes a contents page, then gets the first item (detail page) thats linked from there, scrapes the image from that detail page, and pulls text to use as a caption
     -
       name: name of source in your words
       category: Universe
@@ -167,5 +167,7 @@ image_sources:
       specify_request_headers: True # Optional, if a website blocks the request()
       detail_page_root: base image_url where detail link are under
       detail_img_number: 2 # 1st = 1, not 0
+      detail_text_tag: p # Optional, grab an element from the detail page to use as a text caption
+      detail_text_tag_class: class_name # Optional
       add_http_img: True # Optional, Does src in img tag need to be prepended with "http:"?
       max_items: 1
