@@ -6,15 +6,15 @@ I happily pay for subscriptions to quality news sources and support essential jo
 I made Finite News to deliver a lean, personalized daily news email. Its goal is to reduce distractions and focus on what's happening in the world.
   
 ## 👀 Features
- - Gives you headlines from your trusted APIs and websites.
- - Enforces strict limits on the volume of news, and leaves out ads and links.
- - Applies a large language model (LLM) and rules to consolidate headlines that are about the same topic and remove opinions, clickbait, and news you saw yesterday.
- - Forecasts your local weather.
- - Updates you on stock prices.
- - Optionally
-     - Alerts you if your favorite NBA or NHL team plays tonight.
-     - Lists upcoming events of interest.
-     - Shares a joke or quote.
+Finite News can...
+ - Give you the day's headlines from your trusted APIs, feeds, and websites.
+     - Enforcing strict limits on the volume of news, and leaves out ads and links.
+     - Applying a large language model (LLM) and rules to consolidate headlines that are about the same topic, remove opinions and clickbait, and only show news you haven't seen before.
+ - Forecast your local weather.
+ - Get you the latest XKCD comic.
+ - Alert you if your favorite NBA or NHL team plays tonight.
+ - List upcoming events of interest to you.
+ - Tell a joke.
   
 ## 📰 Make your own newspaper
 ### How it works
