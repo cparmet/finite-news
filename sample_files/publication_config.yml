@@ -156,6 +156,29 @@ events_sources:
 
 # Optional, get images from web
 image_sources:
+    # This example gets the latest XKCD comic (Creative Commons license! ❤️ 🙏)
+    -
+      name: XKCD
+      type: image_url
+      category: Comics
+      method: atom
+      url: https://xkcd.com/atom.xml
+      # To parse an Atom feed with Finite News, first see how the feed is structured:
+          # !pip install feedparser
+          # import feedparser
+          # feedparser.parse(URL).entries
+      # Look at one entry in the feed (one item we want to show in an issue Finite News). The entry should be a Python dictionary.
+      # Decide which elements of the entry (dictionary) you want to extract to make a header, image, and/or body
+      # Indicate the paths to each element like below
+      header_path:  # Optional. Each item in the list is a nested location in the dictionary
+          - title
+      header_preface: "XKCD: " # Optional
+      image_path: # Optional. This example gets the <img> element from entry["summary_detail"]["value"]
+          - summary_detail
+          - value
+      # body_path:  # Optional, can add this and set up header_path or image_path
+      max_items: 1
+
     # This example first scrapes a contents page, then gets the first item (detail page) thats linked from there, scrapes the image from that detail page, and pulls text to use as a caption
     -
       name: name of source in your words
