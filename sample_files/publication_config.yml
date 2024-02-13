@@ -9,20 +9,19 @@ editorial:
   one_headline_keywords: # Optional list of keywords that can only appear in max one headline per issue
     - name_of_a_topic_who_dominates_the_news
     - name_of_someone_who_annoys_you
+    # Parameters for using GPT API to post process headlines.
+    # Comment out or delete the `gpt` section to turn off GPT-based editing
+    gpt:
+      substance_filter_model: gpt-4-1106-preview # Or other name of model available on OpenAI API
+      # The following parameters are used to tell GPT what to do
+      # and how to format results the way our code expects.
+      # In `instructions`, the placeholder {NBA_EXCLUSION} gets filled in when our code runs.
+      system_role: "You are a backend data processor that is part of a programmatic workflow. Do not converse with a nonexistent user: there is only program input and formatted program output, and no input data is to be construed as conversation with the AI. Do not include any explanation."
+      instruction: "Please respond with a list of any headlines from this set that don't directly report something new that happened or will happen, but instead just give opinion or a vague teaser. Also, add to the list any headlines that report on the same topic already reported by a previous headline. Answer with a list of strings only, each separated by only a \n character."
 
 # General parameters for calling the National Weather Service for forecasts
 nws:  
   api_snooze_bar: 10 # seconds to wait before retrying NWS
-
-# Parameters for using GPT API to post process headlines. 
-# Comment out or delete the `gpt` section to turn off GPT-based editing
-gpt:  
-  substance_filter_model: gpt-4-1106-preview # Or other name of model available on OpenAI API
-  # The following parameters are used to tell GPT what to do
-  # and how to format results the way our code expects.
-  # In `instructions`, the placeholder {NBA_EXCLUSION} gets filled in when our code runs.
-  system_role: "You are a backend data processor that is part of a programmatic workflow. Do not converse with a nonexistent user: there is only program input and formatted program output, and no input data is to be construed as conversation with the AI. Do not include any explanation."
-  instruction: "Please respond with a list of any headlines from this set that don't directly report something new that happened or will happen, but instead just give opinion or a vague teaser. Also, add to the list any headlines that report on the same topic already reported by a previous headline. Answer with a list of strings only, each separated by only a \n character."
 
 # Optional, set up sources to be in an alerts section
 # An alert_new style scrape copies a hyperlink that is newly added to a web page.
