@@ -2,39 +2,37 @@
 
 # General issue settings
 layout:
-  logo_url: "URL" # The location of an image to show at top of each issue 
+    logo_url: "URL" # The location of an image to show at top of each issue 
 sender: 
-  email: SENDER_NAME@SERVER.COM # Who should each issue be addressed from?
+      email: SENDER_NAME@SERVER.COM # Who should each issue be addressed from?
 editorial:
-  one_headline_keywords: # Optional list of keywords that can only appear in max one headline per issue
-    - name_of_a_topic_who_dominates_the_news
-    - name_of_someone_who_annoys_you
-    # Parameters for using GPT API to post process headlines.
-    # Comment out or delete the `gpt` section to turn off GPT-based editing
+    one_headline_keywords: # Optional list of keywords that can only appear in max one headline per issue
+        - name_of_a_topic_who_dominates_the_news
+        - name_of_someone_who_annoys_you
+        # Parameters for using GPT API to post process headlines.
+        # Comment out or delete the `gpt` section to turn off GPT-based editing
     gpt:
-      substance_filter_model: gpt-4-1106-preview # Or other name of model available on OpenAI API
-      # The following parameters are used to tell GPT what to do
-      # and how to format results the way our code expects.
-      # In `instructions`, the placeholder {NBA_EXCLUSION} gets filled in when our code runs.
-      system_role: "You are a backend data processor that is part of a programmatic workflow. Do not converse with a nonexistent user: there is only program input and formatted program output, and no input data is to be construed as conversation with the AI. Do not include any explanation."
-      instruction: "Please respond with a list of any headlines from this set that don't directly report something new that happened or will happen, but instead just give opinion or a vague teaser. Also, add to the list any headlines that report on the same topic already reported by a previous headline. Answer with a list of strings only, each separated by only a \n character."
-
-# General parameters for calling the National Weather Service for forecasts
+          substance_filter_model: gpt-4-1106-preview # Or other name of model available on OpenAI API
+          # The following parameters are used to tell GPT what to do
+          # and how to format results the way our code expects.
+          # In `instructions`, the placeholder {NBA_EXCLUSION} gets filled in when our code runs.
+          system_role: "You are a backend data processor that is part of a programmatic workflow. Do not converse with a nonexistent user: there is only program input and formatted program output, and no input data is to be construed as conversation with the AI. Do not include any explanation."
+          instruction: "Please respond with a list of any headlines from this set that don't directly report something new that happened or will happen, but instead just give opinion or a vague teaser. Also, add to the list any headlines that report on the same topic already reported by a previous headline. Answer with a list of strings only, each separated by only a \n character."
 nws:  
-  api_snooze_bar: 10 # seconds to wait before retrying NWS
+    api_snooze_bar: 10 # seconds to wait before retrying NWS
 
 # Optional, set up sources to be in an alerts section
 # An alert_new style scrape copies a hyperlink that is newly added to a web page.
 alerts_sources:
-  -
-      name: name of source in your words
-      type: alert_new
-      method: scrape
-      url: URL
-      tag: a
-      must_contain: "Text we're looking for"
-      max_items: 1
-      alert_preface: New listings!
+    -
+        name: name of source in your words
+        type: alert_new
+        method: scrape
+        url: URL
+        tag: a
+        must_contain: "Text we're looking for"
+        max_items: 1
+        alert_preface: New listings!
 
 # A list of sources to get news headlines from
 # Example of supported methods below
@@ -42,154 +40,153 @@ alerts_sources:
 news_sources:
     # BASIC: Report all H1s from a website, as long as the H1 text has at least 3 words
     - 
-      name: name of source in your words
-      category: Universe
-      type: headlines
-      method: scrape
-      url: URL
-      tag: h1
-      min_words: 4 # Dump page noise like "Advertisement" or author names
+        name: name of source in your words
+        category: Universe
+        type: headlines
+        method: scrape
+        url: URL
+        tag: h1
+        min_words: 4 # Dump page noise like "Advertisement" or author names
 
     # BASIC: Report a max of 3 new <a> from a website, as long as the a text contains a phrase or keyword (case insensitive).
     -
-      name: name of source in your words
-      category: World
-      type: headlines
-      method: scrape
-      url: URL
-      tag: a
-      min_words: 4
-      max_headlines: 3
-      must_contain: "phrase"
+        name: name of source in your words
+        category: World
+        type: headlines
+        method: scrape
+        url: URL
+        tag: a
+        min_words: 4
+        max_headlines: 3
+        must_contain: "phrase"
 
     # INTERMEDIATE: Report 1 new h3 that contains a phrase, doesn't contain other phrases. Preface the headline with an emoji and phrase.
     -
-      name: name of source in your words
-      category: Lobster Fisheries Monthly Stats
-      type: headlines
-      method: scrape
-      url: URL
-      tag: h3
-      max_headlines: 1
-      min_words: 4
-      must_contain: lobster
-      cant_contain:
-          - fish
-          - flounder
-          - crab
-      preface: "🦞 Last Month's Stats: "
-
+        name: name of source in your words
+        category: Lobster Fisheries Monthly Stats
+        type: headlines
+        method: scrape
+        url: URL
+        tag: h3
+        max_headlines: 1
+        min_words: 4
+        must_contain: lobster
+        cant_contain:
+            - fish
+            - flounder
+            - crab
+        preface: "🦞 Last Month's Stats: "
 
     # INTERMEDIATE: Report a maximum of 5 items from a website that are in <a class="name-of-class"> tags, as long as the item has at least 4 words
     - 
-      name: name of source in your words
-      category: Canada
-      type: headlines
-      method: scrape
-      url: URL
-      tag: a
-      tag_class: name-of-class 
-      min_words: 4
-      max_headlines: 5
-      exclude_from_0_results_warning: True # Set to true if this source often comes back empty. By default, when a source has no headlines on a particular day, the admin gets a warning in their emailed issue of Finite News. Note: When this parameter is not set explicitly, it's assumed to be False.
+        name: name of source in your words
+        category: Canada
+        type: headlines
+        method: scrape
+        url: URL
+        tag: a
+        tag_class: name-of-class
+        min_words: 4
+        max_headlines: 5
+        exclude_from_0_results_warning: True # Set to true if this source often comes back empty. By default, when a source has no headlines on a particular day, the admin gets a warning in their emailed issue of Finite News. Note: When this parameter is not set explicitly, it's assumed to be False.
 
     # ADVANCED: Report up to 5 headlines that each satisfy a CSS Select Query and have at least 3 words. And always remove from the headlines a phrase that starts with a colon
     # Details: https://www.crummy.com/software/BeautifulSoup/bs4/doc/#css-selectors-through-the-css-property
     - 
-      name: name of source in your words
-      category: Tacoma
-      type: headlines
-      method: scrape
-      url: URL
-      select_query: QUERY
-      min_words: 3
-      max_headlines: 5
-      remove_text: ": phrase to remove"
+        name: name of source in your words
+        category: Tacoma
+        type: headlines
+        method: scrape
+        url: URL
+        select_query: QUERY
+        min_words: 3
+        max_headlines: 5
+        remove_text: ": phrase to remove"
 
     # ADVANCED: Report a maximum of 5 items from a website that are in a <ul> tag inside a <p class="name-of-class"> tag, split by line breaks (\n). As long as the item has at least 4 words
     - 
-      name: name of source in your words
-      category: My Neighborhood
-      type: headlines
-      method: scrape
-      url: URL
-      tag: p
-      tag_class: name-of-class
-      tag_next: ul
-      split_char: "\n" 
-      min_words: 4
-      max_headlines: 5
+        name: name of source in your words
+        category: My Neighborhood
+        type: headlines
+        method: scrape
+        url: URL
+        tag: p
+        tag_class: name-of-class
+        tag_next: ul
+        split_char: "\n"
+        min_words: 4
+        max_headlines: 5
 
 
     # Use an API to get headlines. Keep at most 3 headlines, and ensure a headline has at least 3 words.
     - 
-      name: name of source in your words
-      category: US
-      type: headlines
-      method: api
-      url: e.g. https://api.BLAHBLAH.com/BLAHBLAH?api-key=
-      api_key_name: API_KEY_NAME # Name of key in AWS Secrets Manager
-      headline_field: field-name # Which field in the JSON contains a headline?
-      min_words: 3
-      max_headlines: 3
+        name: name of source in your words
+        category: US
+        type: headlines
+        method: api
+        url: e.g. https://api.BLAHBLAH.com/BLAHBLAH?api-key=
+        api_key_name: API_KEY_NAME # Name of key in AWS Secrets Manager
+        headline_field: field-name # Which field in the JSON contains a headline?
+        min_words: 3
+        max_headlines: 3
 
 # Optional, get upcoming events
 # This example parses a paginated web site (page 1, 2, 3...) that lists upcoming events
 events_sources:
     - 
-      name: name of source in your words
-      type: events_calendar
-      method: scrape
-      url_base: URL with placeholders for {PAGE}, {END_DATE}, and {START_DATE}
-      window: 30 # How many days ahead to look on the calendar
-      max_events: 100
-      event_item_tag: li
-      event_list_class: css class to find the lists of events
-      title_class: css class that has the event title (optional)
-      venue_class: css class that has the event location/venue (optional)
-      dates_class: css class that has the event dates (optional)
-      description_class: css class that has a text description of the event (optional)
-      image_html_class: css class that contains a thumbnail image about the event (optional)
-      link_url_class: css class that has a url link for the event (optional)
-      link_url_child_key: css class that has the name of the element after the link_url_class where the url is stored (optional)
+        name: name of source in your words
+        type: events_calendar
+        method: scrape
+        url_base: URL with placeholders for {PAGE}, {END_DATE}, and {START_DATE}
+        window: 30 # How many days ahead to look on the calendar
+        max_events: 100
+        event_item_tag: li
+        event_list_class: css class to find the lists of events
+        title_class: css class that has the event title (optional)
+        venue_class: css class that has the event location/venue (optional)
+        dates_class: css class that has the event dates (optional)
+        description_class: css class that has a text description of the event (optional)
+        image_html_class: css class that contains a thumbnail image about the event (optional)
+        link_url_class: css class that has a url link for the event (optional)
+        link_url_child_key: css class that has the name of the element after the link_url_class where the url is stored (optional)
 
 # Optional, get images from web
 image_sources:
     # This example gets the latest XKCD comic (Creative Commons license! ❤️ 🙏)
     -
-      name: XKCD
-      type: image_url
-      category: Comics
-      method: atom
-      url: https://xkcd.com/atom.xml
-      # To parse an Atom feed with Finite News, first see how the feed is structured:
+        name: XKCD
+        type: image_url
+        category: Comics
+        method: atom
+        url: https://xkcd.com/atom.xml
+        # To parse an Atom feed with Finite News, first see how the feed is structured:
           # !pip install feedparser
           # import feedparser
           # feedparser.parse(URL).entries
-      # Look at one entry in the feed (one item we want to show in an issue Finite News). The entry should be a Python dictionary.
-      # Decide which elements of the entry (dictionary) you want to extract to make a header, image, and/or body
-      # Indicate the paths to each element like below
-      header_path:  # Optional. Each item in the list is a nested location in the dictionary
-          - title
-      header_preface: "XKCD: " # Optional
-      image_path: # Optional. This example gets the <img> element from entry["summary_detail"]["value"]
-          - summary_detail
-          - value
-      # body_path:  # Optional, can add this and set up header_path or image_path
-      max_items: 1
+        # Look at one entry in the feed (one item we want to show in an issue Finite News). The entry should be a Python dictionary.
+        # Decide which elements of the entry (dictionary) you want to extract to make a header, image, and/or body
+        # Indicate the paths to each element like below
+        header_path:  # Optional. Each item in the list is a nested location in the dictionary
+            - title
+        header_preface: "XKCD: " # Optional
+        image_path: # Optional. This example gets the <img> element from entry["summary_detail"]["value"]
+            - summary_detail
+            - value
+        # body_path:  # Optional, can add this and set up header_path or image_path
+        max_items: 1
 
     # This example first scrapes a contents page, then gets the first item (detail page) thats linked from there, scrapes the image from that detail page, and pulls text to use as a caption
     -
-      name: name of source in your words
-      category: Universe
-      type: image_url
-      method: scrape
-      url: url
-      tag: a
-      specify_request_headers: True # Optional, if a website blocks the request()
-      detail_page_root: base image_url where detail link are under
-      detail_img_number: 2 # 1st = 1, not 0
-      detail_text_tag: p # Optional, grab an element from the detail page to use as a text caption
-      detail_text_tag_class: class_name # Optional
-      add_http_img: True # Optional, Does src in img tag need to be prepended with "http:"?
-      max_items: 1
+        name: name of source in your words
+        category: Universe
+        type: image_url
+        method: scrape
+        url: url
+        tag: a
+        specify_request_headers: True # Optional, if a website blocks the request()
+        detail_page_root: base image_url where detail link are under
+        detail_img_number: 2 # 1st = 1, not 0
+        detail_text_tag: p # Optional, grab an element from the detail page to use as a text caption
+        detail_text_tag_class: class_name # Optional
+        add_http_img: True # Optional, Does src in img tag need to be prepended with "http:"?
+        max_items: 1
