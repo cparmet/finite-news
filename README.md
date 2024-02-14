@@ -39,7 +39,7 @@ Finite News is set up to run as a scheduled job in AWS Sagemaker.
 8. (Optional) Create an API account on openai.com, to use GPT to filter headlines
     - Add your api key to your AWS Secrets Manager under `fn_secrets` as `OPENAI_API_KEY`
 9. Test the notebook `finite_news.ipynb` in Sagemaker.
-    - Select a Data Science 2.0 image with Python 3.8. Newer images and newer Python versions may work too! But the "Data Science" (1.0) image may not.
+    - Select a Data Science 2.0 image with Python 3.8 on a `ml.m5.large` instance. Other settings may work too! But the "Data Science" (1.0) image may not, and getting it to run on other instances may require changing the code such as finding different package versions that are happy together in that environment.
     - In the Parameters cell, set `DEV_MODE = True` etc so no email is sent. It will write the day's issues to a file in the notebook directory instead.
     - Inspect the file.
 10. Run the notebook as a [scheduled job](https://docs.aws.amazon.com/sagemaker/latest/dg/create-notebook-auto-run-studio.html). This is easy!
