@@ -14,6 +14,7 @@ Finite News can...
  - Get you the latest XKCD comic.
  - Alert you if your favorite NBA or NHL team plays tonight.
  - List upcoming events of interest to you.
+ - Tell you if a new electric car is eligible for the $7500 tax rebate in the US.
  - Tell a joke.
   
 ## 📰 Make your own newspaper

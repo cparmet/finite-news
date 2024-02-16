@@ -27,7 +27,9 @@ sources:
   # all sections that follow are optional. Delete to remove the section
   alerts_sources:
       sources:
-        - name of alerts source from publication_config
+        - "fueleconomy.gov: EV incentives (new cars)"
+        - "fueleconomy.gov: EV incentives (pre-owned cars)"
+        - other `name` in `alert_sources` from publication_config.yml
         - ...
   news_categories: # Which categories of sources from publication_config should this issue inclue?
     - World
