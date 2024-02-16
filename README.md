@@ -9,11 +9,12 @@ I made Finite News to deliver a lean, personalized daily news email. Its goal is
 Finite News can...
  - Give you the day's headlines from your trusted APIs, feeds, and websites.
      - Enforcing strict limits on the volume of news, and leaves out ads and links.
-     - Applying a large language model (LLM) and rules to consolidate headlines that are about the same topic, remove opinions and clickbait, and only show news you haven't seen before.
+     - Applies multiple large language model (LLMs) and rules to consolidate headlines that are about the same topic, remove opinions and clickbait, and only show news you haven't seen before.
  - Forecast your local weather.
  - Get you the latest XKCD comic.
  - Alert you if your favorite NBA or NHL team plays tonight.
  - List upcoming events of interest to you.
+ - Tell you if a new electric car is eligible for the $7500 tax rebate in the US.
  - Tell a joke.
   
 ## 📰 Make your own newspaper

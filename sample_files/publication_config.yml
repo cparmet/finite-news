@@ -27,6 +27,7 @@ nws:
 # Optional, set up sources to be in an alerts section
 # An alert_new style scrape copies a hyperlink that is newly added to a web page.
 alerts_sources:
+    # Generic example
     -
         name: name of source in your words
         type: alert_new
@@ -36,6 +37,44 @@ alerts_sources:
         must_contain: "Text we're looking for"
         max_items: 1
         alert_preface: New listings!
+    # Alert subscriber if a new electric car is added to the US Government's list of vehicles eligible for tax incentives (up to $7500!)
+    # The URL is current as of Feb 2024
+    # In this example, each alert will contain the type of car, make, and model, like "EV Chevrolet Bolt". But the exclusions would not alert us about Audis
+    -
+        name: "fueleconomy.gov: EV incentives (new cars)"
+        type: alert_new
+        method: scrape
+        parser: xml
+        url: https://fueleconomy.gov/ws/rest/tax/incentives/cmbc/public
+        multitag_group: taxCreditVehicleCMBC
+        multitag_tags:
+            - atvType
+            - irsMake
+            - irsModel
+        multitag_separator: " "
+        alert_preface: "🔋 <i>New EV eligible for Federal incentive:</i> "
+        cant_contain:
+            - audi
+    # Alert subscriber if a USED electric car is added to the US Government's list of vehicles eligible for tax incentives. The URL is current as of Feb 2024
+    # In this example, we only want alerts for plug-in hybrids (atvType), which will be formatted like "Plug-in Hybrid Cadillac ELR". But no Bentleys :D
+
+    -
+        name: "fueleconomy.gov: EV incentives (pre-owned cars)"
+        type: alert_new
+        method: scrape
+        parser: xml
+        url: https://fueleconomy.gov/ws/rest/tax/usedincentives/public
+        multitag_group: usedTaxCredit
+        multitag_tags:
+            - atvType
+            - irsMake
+            - irsModel
+        multitag_separator: " "
+        alert_preface: "🔌 <i>Used EV eligible for Federal incentive:</i> "
+        must_contain:
+            - plug-in
+        cant_contain:
+            - bentley
 
 # A list of sources to get news headlines from
 # Example of supported methods below
