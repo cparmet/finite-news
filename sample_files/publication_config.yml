@@ -18,6 +18,7 @@ editorial:
         instruction: "Please respond with a list of any headlines from this set that don't directly report something new that happened or will happen, but instead just give opinion or a vague teaser. Also, add to the list any headlines that report on the same topic already reported by a previous headline. Answer with a list of strings only, each separated by only a \n character."
     smart_deduper: # Parameters for using Sentence Transformer to de-duplicate headlines with similar meanings, even if they don't have the same words
         model: "paraphrase-MiniLM-L6-v2" # Choose from https://huggingface.co/sentence-transformers
+                # For multilingual content, consider paraphrase-multilingual-MiniLM-L12-v2
         threshold: 0.41 # Lower is more aggressive. When 2 headlines's embeddings are at least this similar, only keep 1 of them.
 # General parameters for calling the National Weather Service for forecasts
 
