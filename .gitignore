@@ -2,7 +2,7 @@ __pycache__/*
 */__pycache__/*
 .ipynb_checkpoints/*
 */.ipynb_checkpoints/*
-dev.ipynb
+dev/
 __pycache__/
 *.txt
 *.svg
