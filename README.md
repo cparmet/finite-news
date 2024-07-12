@@ -1,3 +1,5 @@
+<img src="assets/fn_logo.jpeg" alt="Finite News Logo">
+  
 🗞️ Extra extra! This is Finite News: the mindful, AI-assisted newspaper.   
   
 ## 🤔 Motivation
