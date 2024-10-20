@@ -221,7 +221,7 @@ image_sources:
     # This example first scrapes a contents page, then gets the first item (detail page) thats linked from there, scrapes the image from that detail page, and pulls text to use as a caption
     -
         name: name of source in your words
-        category: Universe
+        category: category in your words
         type: image_url
         method: scrape
         url: url
@@ -232,4 +232,14 @@ image_sources:
         detail_text_tag: p # Optional, grab an element from the detail page to use as a text caption
         detail_text_tag_class: class_name # Optional
         add_http_img: True # Optional, Does src in img tag need to be prepended with "http:"?
+        max_items: 1
+
+    # The next example returns the latest image posted on an RSS feed 
+    -
+        name: name of source in your words
+        category: category in your words
+        type: image_url
+        method: rss_images
+        url: "http://<url>.rss"
+        header: Latest image
         max_items: 1
