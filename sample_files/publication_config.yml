@@ -234,12 +234,24 @@ image_sources:
         add_http_img: True # Optional, Does src in img tag need to be prepended with "http:"?
         max_items: 1
 
-    # The next example returns the latest image posted on an RSS feed 
+    # The next example returns the latest image posted on an RSS feed
+    # By default, looks for the image under the "media_content" key of the RSS entry
     -
         name: name of source in your words
         category: category in your words
         type: image_url
         method: rss_images
         url: "http://<url>.rss"
+        header: Latest image
+        max_items: 1
+    # The next example returns the latest <img> item posted on an RSS feed
+    # This time, we parse the <img> in HTML that stored under the "summary" key of the RSS entry
+    -
+        name: name of source in your words
+        category: category in your words
+        type: image_url
+        method: rss_images
+        url: "http://<url>.rss"
+        get_img_tag_under_this_key: "summary" # <---- Only difference from above
         header: Latest image
         max_items: 1
