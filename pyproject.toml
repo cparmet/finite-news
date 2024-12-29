@@ -11,13 +11,9 @@ dependencies = [
     "emoji>=2.14.0",
     "env-canada>=0.7.2",
     "feedparser>=6.0.11",
-    "ipywidgets>=8.1.5",
-    "jupyterlab-widgets>=3.0.13",
     "matplotlib>=3.7.5",
     "openai>=1.58.1",
     "pandas>=2.0.3",
-    "pre-commit>=3.5.0",
-    "ruff>=0.8.4",
     "s3fs>=0.4.2",
     "seaborn>=0.13.2",
     "sendgrid>=6.11.0",
@@ -25,4 +21,14 @@ dependencies = [
     "torch==2.2",
     "widgetsnbextension>=4.0.13",
     "yfinance==0.2.33",
+]
+
+[dependency-groups]
+# Development dependencies will be installed by default in uv run and uv sync, but will not appear in the project's published metadata.
+dev = [
+    "ipykernel>=6.29.5",
+    "ipywidgets>=8.1.5",
+    "jupyterlab-widgets>=3.0.13",
+    "pre-commit>=3.5.0",
+    "ruff>=0.8.4",
 ]

@@ -3,6 +3,7 @@
 import emoji
 import logging
 import openai
+import os
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 from time import sleep
@@ -36,7 +37,7 @@ def cache_issue_content(content, bucket_path, cache_path):
     None
     """
 
-    with fs.open(bucket_path + cache_path, "w") as cache_file:
+    with fs.open(bucket_path + cache_path, "w") as cache_file:  # noqa: F821
         for item in content:
             cache_file.write(f"{item}\n")
         logging.info(f"Wrote issue content to {bucket_path+cache_path}")
@@ -188,8 +189,16 @@ def smart_dedup(headlines, smart_dedup_config, prefaces_to_ignore=[]):
     List of headlines after de-duplication
     """
     try:
-        # Set things up
-        model = SentenceTransformer(smart_dedup_config["model"])
+        # Validate that the local model exists
+        if not os.path.exists("models/smart-deduper"):
+            logging.warning(
+                "Smart deduper failed. Local path 'models/smart-deduper' doesn't exist. See README.md for setup."
+            )
+            return headlines
+
+        # Load it
+        model = SentenceTransformer("models/smart-deduper")
+
         # First, temporarily remove prefaces to headlines.
         # TODO: Refactor so that FiniteNews doesn't add prefaces until after editing. Then we can avoid this hokey pokey move.
         headlines_clean = headlines
