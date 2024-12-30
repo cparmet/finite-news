@@ -192,7 +192,7 @@ def format_issue(issue_config, content, log_stream=None):
     # Credits section
     # We need this car_talk_block variable later too
     car_talk_block = (
-        "<p>" + get_car_talk_credit(issue_config["bucket_path"]) + "</p><br>"
+        "<p>" + get_car_talk_credit() + "</p><br>"
         if issue_config["editorial"]["add_car_talk_credit"]
         else ""
     )

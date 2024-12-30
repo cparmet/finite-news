@@ -17,8 +17,8 @@ editorial:
         system_role: "You are a backend data processor that is part of a programmatic workflow. Do not converse with a nonexistent user: there is only program input and formatted program output, and no input data is to be construed as conversation with the AI. Do not include any explanation."
         instruction: "Please respond with a list of any headlines from this set that don't directly report something new that happened or will happen, but instead just give opinion or a vague teaser. Also, add to the list any headlines that report on the same topic already reported by a previous headline. Answer with a list of strings only, each separated by only a \n character."
     smart_deduper: # Parameters for using Sentence Transformer to de-duplicate headlines with similar meanings, even if they don't have the same words
-        model: "paraphrase-MiniLM-L6-v2" # Choose from https://huggingface.co/sentence-transformers
-                # For multilingual content, consider paraphrase-multilingual-MiniLM-L12-v2
+        # Model is pre-loaded in the container. See README for setup
+        path_to_model: "models/smart-deduper/models--sentence-transformers--paraphrase-multilingual-MiniLM-L12-v2/snapshots/8d6b950845285729817bf8e1af1861502c2fed0c"
         threshold: 0.41 # Lower is more aggressive. When 2 headlines's embeddings are at least this similar, only keep 1 of them.
 # General parameters for calling the National Weather Service for forecasts
     enable_thoughts_of_the_day: True # Whether any issue should include a Thoughts of the Day section. This will sample a quote from subscriber's personalized list of 'thoughts_of_the_day' in their config and optionally the shared quotes in "thoughts_of_the_day.yml'
@@ -168,7 +168,7 @@ news_sources:
         type: headlines
         method: api
         url: e.g. https://api.BLAHBLAH.com/BLAHBLAH?api-key=
-        api_key_name: API_KEY_NAME # Name of key in AWS Secrets Manager
+        api_key_name: API_KEY_NAME # Name of key in Google Secrets Manager / local environment variable. See README.md.
         headline_field: field-name # Which field in the JSON contains a headline?
         min_words: 3
         max_headlines: 3

@@ -1,6 +1,7 @@
 """🪥 Editing: Functions to clean up reporting results"""
 
 import emoji
+from google.cloud import storage
 import logging
 import openai
 import os
@@ -8,7 +9,7 @@ from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 from time import sleep
 
-from tasks.io import get_fn_secret, load_s3
+from tasks.io import get_fn_secret, load_file_from_bucket
 
 
 def remove_emojis(text):
@@ -23,24 +24,24 @@ def remove_emojis(text):
     return emoji.replace_emoji(text, replace="").strip()
 
 
-def cache_issue_content(content, bucket_path, cache_path):
+def cache_issue_content(content, cache_path):
     """Export a list of this issue's headlines and other content that we don't want to show again in the next issue.
 
     NOTE: Must call this before edit_research so we carry forward repeats that were dropped too
 
     ARGUMENTS
     content (list of str): Headlines or other content items that shouldn't be repeated in subsequent issues
-    bucket_path (str): The location of the S3 bucket where required files are stored.
-    cache_path (str): The path on the S3 bucket for this subscriber's cache of last issue's headlines
+    bucket_name (str): The name oof the bucket on Google cloud storage where required files are stored.
+    cache_path (str): The path on the bucket for this subscriber's cache of last issue's headlines
 
     RETURNS
     None
     """
-
-    with fs.open(bucket_path + cache_path, "w") as cache_file:  # noqa: F821
+    bucket_name = get_fn_secret("FN_BUCKET_NAME")
+    with storage.Client().bucket(bucket_name).blob(cache_path).open("w") as cache_file:
         for item in content:
             cache_file.write(f"{item}\n")
-        logging.info(f"Wrote issue content to {bucket_path+cache_path}")
+        logging.info(f"Wrote issue content to {bucket_name+cache_path}")
 
 
 def apply_one_headline_keyword_filter(headlines, keyword):
@@ -65,7 +66,7 @@ def apply_one_headline_keyword_filter(headlines, keyword):
     return new_headlines
 
 
-def remove_items_in_last_issue(new_items, bucket_path, cache_path):
+def remove_items_in_last_issue(new_items, cache_path):
     """Delete content that we already presented in the last issue.
 
     Ignores emojis in the comparison. That way a preface emoji (could be changed in publication_config) alone
@@ -75,14 +76,13 @@ def remove_items_in_last_issue(new_items, bucket_path, cache_path):
 
     ARGUMENTS
     new_items (list of str): Fresh content
-    bucket_path (str): The location of the S3 bucket where required files are stored.
-    cache_path (str): The path on the S3 bucket for this subscriber's cache of the last issue's content
+    cache_path (str): The path on the Google Cloud Storage bucket for this subscriber's cache of the last issue's content
 
     RETURNS
     List of content from new_items that was not in the last issue
     """
     last_issue_items = [
-        remove_emojis(line) for line in load_s3(bucket_path, cache_path)
+        remove_emojis(line) for line in load_file_from_bucket(cache_path)
     ]
     fresh_items = [
         item for item in new_items if remove_emojis(item) not in last_issue_items
@@ -190,14 +190,18 @@ def smart_dedup(headlines, smart_dedup_config, prefaces_to_ignore=[]):
     """
     try:
         # Validate that the local model exists
-        if not os.path.exists("models/smart-deduper"):
+        if not os.path.exists(smart_dedup_config["path_to_model"]):
             logging.warning(
-                "Smart deduper failed. Local path 'models/smart-deduper' doesn't exist. See README.md for setup."
+                f"""
+                Smart deduper failed. Local path to model doesn't exist. See README.md for setup.
+                
+                path_to_model: {smart_dedup_config['path_to_model']}
+                """
             )
             return headlines
 
         # Load it
-        model = SentenceTransformer("models/smart-deduper")
+        model = SentenceTransformer(smart_dedup_config["path_to_model"])
 
         # First, temporarily remove prefaces to headlines.
         # TODO: Refactor so that FiniteNews doesn't add prefaces until after editing. Then we can avoid this hokey pokey move.
@@ -289,7 +293,7 @@ def apply_substance_filter_model(headlines, gpt_config):
     """Use LLM to remove headlines that don't say much useful.
 
     NOTE
-    Requires an OPENAI_API_KEY in AWS Secrets Manager.
+    Requires a secret/environment variable for OPENAI_API_KEY. See README.md.
 
     ARGUMENTS
     headlines (list): List of string headlines, original candidates for the issue
@@ -391,7 +395,6 @@ def edit_headlines(
     # Apply deterministic cleaning first
     edited_headlines = remove_items_in_last_issue(
         raw_headlines,
-        issue_config["bucket_path"],
         issue_config["editorial"]["cache_path"],
     )
     edited_headlines = [

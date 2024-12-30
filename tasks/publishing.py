@@ -4,7 +4,9 @@ from sendgrid import Attachment, SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from datetime import date, datetime
 import logging
+import traceback
 
+from tasks.io import init_logging, load_subscriber_configs
 from tasks.editing import edit_headlines, unnest_list, cache_issue_content
 from tasks.layout import format_issue
 from tasks.io import get_fn_secret
@@ -18,7 +20,7 @@ def email_issue(sender, subscriber_email, html, images):
     """Send issue of Finite News to a subscriber by email using the SendGrid API service.
 
     NOTE
-    Requires a secret in AWS Secret Manager for SENDGRID_API_KEY
+    Requires a secret/environment variable for SENDGRID_API_KEY. See README.md.
 
     ARGUMENTS
     sender (dict): Metadata about the email source, with keys for "subject" and "email"
@@ -210,7 +212,6 @@ def create_issue(issue_config, log_stream, dev_mode=False):
     if issue_config["editorial"]["cache_issue_content"]:
         cache_issue_content(
             content_to_cache,
-            issue_config["bucket_path"],
             issue_config["editorial"]["cache_path"],
         )
 
@@ -230,3 +231,52 @@ def create_issue(issue_config, log_stream, dev_mode=False):
     )
     logging.info(f"{issue_config['subscriber_email']}: Finished create_issue()")
     return html, images
+
+
+def run_finite_news(dev_mode=True, disable_gpt=True, logging_level="warning"):
+    """Entry point to create and deliver issues to all subscribers of Finite News.
+
+    ARGUMENTS
+    dev_mode (bool): If True we're in development or debug mode, so:
+        - don't send emails
+        - don't cache new headlines for later dedup
+        - output plots to local files
+    disable_gpt (bool): If True, don't call the GPT API and incur costs, for example during dev or debug cycles.
+    logging_level (level from logging library): The deepest granularity of log messages to track
+        -  Use "warning" by default
+        - Use "info" to get more detailed FN messages for debugging
+        - Use "debug" to get lower-level messages from dependencies
+
+    RETURNS
+    None
+    """
+    if dev_mode:
+        ## Housekeeping for notebook environments
+
+        # TQDM in notebook mode
+        from tqdm import TqdmExperimentalWarning
+        import warnings
+
+        warnings.filterwarnings("ignore", category=TqdmExperimentalWarning)
+        from tqdm.notebook import tqdm
+
+    else:
+        from tqdm import tqdm
+
+    log_stream = init_logging(logging_level, dev_mode)
+    for subscriber_config in tqdm(load_subscriber_configs(dev_mode, disable_gpt)):
+        try:
+            html, images = create_issue(subscriber_config, log_stream, dev_mode)
+            deliver_issue(subscriber_config, html, images)
+        except Exception as e:
+            # During dev or debugging, raise exception and show traceback in notebook.
+            if dev_mode:
+                raise e
+            # In prod mode, save traceback for admin's issue, but continue to try to publish the next issue.
+            logging.critical(
+                f"{subscriber_config['subscriber_email']}: Issue failed due to unhandled exception. {traceback.format_exc()}"
+            )
+    if dev_mode:
+        print("👍")
+    else:
+        logging.info("👍")

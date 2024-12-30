@@ -22,7 +22,7 @@ issue_frequency: # Optional section: specify how often to deliver the issue. If 
 editorial:
   subject: "Finite News" # The email subject
   add_shared_thoughts: False # If True, in addition to list of thoughts_of_the_day below, the issue will also sample the "Thought of the Day" quotes from the shared `thoughts_of_the_day.yml` file.
-  last_headlines_file: last_headlines_SUBSCRIBER_NAME.txt # The name of the file on S3 to cache headlines from the last issue. Used to ensure that Finite News doesn't report any headlines the user already saw in the last issue.
+  last_headlines_file: last_headlines_SUBSCRIBER_NAME.txt # The name of the file on Google Cloud Storage to cache headlines from the last issue. Used to ensure that Finite News doesn't report any headlines the user already saw in the last issue.
 sources:
   # all sections that follow are optional. Delete to remove the section
   alerts_sources:

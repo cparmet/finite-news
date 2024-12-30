@@ -475,26 +475,23 @@ def get_mbta_alerts(route, station_ids, direction_id, requests_timeout):
     ]
 
 
-def get_car_talk_credit(bucket_path):
-    """Pull a random Car Talk credit from a CSV on S3.
+def get_car_talk_credit():
+    """Pull a random Car Talk credit from CSV on the Finite News bucket.
 
     NOTE
     - These credits are fake staff credits that were used at the end of each episode of
     the National Public Radio automotive advice radio show, Car Talk
     - They came from downloading https://www.cartalk.com/content/staff-credits.
 
-    ARGUMENTS
-    bucket_path (str): The location of the S3 bucket where required files are stored.
-
     RETURNS
     A string credit to a fake staff member to thank for creation of this issue of Finite News :D
     """
     try:
-        credit = (
-            pd.read_csv(bucket_path + "car_talk_credits.csv", header=None)
-            .sample(1)
-            .values
+        path_to_car_talk_csv = (
+            f"gs://{get_fn_secret('FN_BUCKET_NAME')}/car_talk_credits.csv"
         )
+
+        credit = pd.read_csv(path_to_car_talk_csv, header=None).sample(1).values
         return ": ".join(credit.flatten().tolist())
     except Exception as e:
         logging.warning(
@@ -508,7 +505,7 @@ def get_car_talk_credit(bucket_path):
 
 
 def get_screenshots(sources):
-    """Not currently working on SM. Disabled."""
+    """Not currently working. Disabled."""
     return []
 
 

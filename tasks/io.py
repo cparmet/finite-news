@@ -4,7 +4,8 @@ import calendar
 from copy import deepcopy
 from datetime import date
 from io import StringIO
-import json
+from google.cloud import storage
+import os
 import logging
 import yaml
 
@@ -15,7 +16,7 @@ def init_logging(logging_level, dev_mode):
         * (if dev_mode=True) a local log file
 
     NOTE
-    Reminder: This function doesn't reset an active log. Must restart the kernel in SageMaker.
+    Reminder: This function doesn't reset an active log. If you're running in a notebook environment, such as dev.ipynb, must restart the kernel.
 
     ARGUMENTS
     logging_level (str): The granularity of logging messages, 'warning', 'info' or 'debug'. If dev_mode=True, forced to 'debug'
@@ -47,51 +48,47 @@ def init_logging(logging_level, dev_mode):
         return log_stream
 
 
-def get_fn_secret(secret_key, secret_name="fn_secrets", region_name="us-east-1"):
-    """Retrieve a secret from AWS Secrets Manager.
+def get_fn_secret(secret_key):
+    """Retrieve a secret value from an environment variable.
+
+    NOTE:
+    - When running locally, the code will pull from the environment variable
+    - When deployed as a Google Cloud Run job, the secret should be exposed to the Cloud Run job as an environment variable.
 
     ARGUMENTS
-    secret_key (string): the specific secret to retrieve, such as BUCKET_PATH or OPENAI_API_KEY
-    secret_name (string): the group where the Finite News secrets are stored in AWS Secrets Manager
-    region_name (string): the region where your AWS Secrets Manager secret_name lives. See the sample code provided by Secrets Manager after you create the secret
+    secret_key (string): the specific secret to retrieve, such as OPENAI_API_KEY
 
     RETURNS
-    the secret as str
+    the secret value as str
     """
 
-    # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager", region_name=region_name)
-
     try:
-        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-    except ClientError as e:  # Stop the presses, we can't get our secret.
+        return os.getenv(secret_key)
+    except Exception as e:
+        logging.critical(f"Failed to get secret {secret_key}. {type(e)}: {e}")
         raise e
 
-    # Decrypt secret using the associated KMS key.
-    try:
-        return json.loads(get_secret_value_response["SecretString"])[secret_key]
-    except KeyError as e:
-        # NOTE: We raise vs log this exception since it's fatal, we can't send any emails
-        raise KeyError(
-            f"Secret key {str(e)} not found. Is it stored in AWS Secrets Manager? Have you given permissions for your SageMaker user to access the secret?"
-        )
 
-
-def load_s3(bucket_path, file_path, required=True):
-    """Loads a file from S3 into Python variable
+def load_file_from_bucket(file_path, required=True):
+    """Loads a file from Google Cloud Storage into Python variable
 
     ARGUMENTS
-    bucket_path (str): The location of the S3 bucket where required files are stored.
     file_path (str): The name or path of the file
     required (bool): Should we error out if we can't load it?
 
     RETURNS
-    file contents asd a python variable
+    file contents as a python variable
     """
-    file_format = file_path.split(".")[-1]
+
     try:
-        with fs.open(bucket_path + file_path, "r") as f:
+        file_format = file_path.split(".")[-1]
+
+        storage_client = storage.Client()
+        bucket_name = get_fn_secret("FN_BUCKET_NAME")
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(file_path)
+
+        with blob.open("r") as f:
             if file_format == "yml":
                 variable = yaml.load(f, Loader=yaml.Loader)
             elif file_format == "htm" or file_format == "html":
@@ -99,13 +96,17 @@ def load_s3(bucket_path, file_path, required=True):
             elif file_format == "txt":
                 variable = f.readlines()
             else:
-                logging.warning(f"Unsupported file type in load_s3: {file_path}")
+                logging.warning(
+                    f"Unsupported file type in load_file_from_bucket: {file_path}"
+                )
                 return None
-        logging.info(f"Read {file_path} from S3")
+        logging.info(f"Read {file_path} from bucket")
         return variable
 
     except Exception as e:
-        error_message = f"Couldn't load {file_path} from S3. {str(type(e))}, {str(e)}"
+        error_message = (
+            f"Couldn't load {file_path} from bucket. {str(type(e))}, {str(e)}"
+        )
         if required:
             logging.critical(error_message)
             raise (e)
@@ -118,10 +119,10 @@ def load_publication_config(
     dev_mode=False,
     disable_gpt=False,
 ):
-    """Import general settings and assets from files on S3, used for all subscribers
+    """Import general settings and assets from files on Google Cloud Storage bucket, used for all subscribers
 
     ARGUMENTS
-    publication_config_file_name (str): file name for the general publication parameters YML file in the S3 bucket identified by BUCKET_PATH
+    publication_config_file_name (str): file name for the general publication parameters YML file in the bucket identified by the environment variable FN_BUCKET_NAME
     dev_mode (bool): If True we're in development or debug mode, so don't send emails or modify headline_logs.
     disable_gpt (bool): If True, don't call the GPT API and incur costs, for example during dev or debug cycles.
 
@@ -129,15 +130,13 @@ def load_publication_config(
     Dict of publication settings for all subscribers
     """
 
-    bucket_path = get_fn_secret("BUCKET_PATH")
-
     # Load publication settings
-    publication_config = load_s3(bucket_path, publication_config_file_name)
+    publication_config = load_file_from_bucket(publication_config_file_name)
 
     # Populate config dictionary, loading more assets as needed
     if publication_config["editorial"].get("enable_thoughts_of_the_day", False):
-        thoughts_of_the_day = load_s3(
-            bucket_path, "thoughts_of_the_day.yml", required=False
+        thoughts_of_the_day = load_file_from_bucket(
+            "thoughts_of_the_day.yml", required=False
         )
         if thoughts_of_the_day:
             thoughts_of_the_day = thoughts_of_the_day["quotes"]
@@ -145,18 +144,17 @@ def load_publication_config(
         thoughts_of_the_day = []
 
     return {
-        "bucket_path": bucket_path,
         "email_delivery": not dev_mode,  # If dev_mode is True, don't send emails
         "sender": publication_config["sender"],
         "layout": {
-            "template_html": load_s3(bucket_path, "template.htm", "r"),
+            "template_html": load_file_from_bucket("template.htm", "r"),
             "logo_url": publication_config["layout"]["logo_url"],
         },
         "editorial": {
             "one_headline_keywords": publication_config["editorial"].get(
                 "one_headline_keywords", []
             ),
-            "substance_rules": load_s3(bucket_path, "substance_rules.yml"),
+            "substance_rules": load_file_from_bucket("substance_rules.yml"),
             "cache_issue_content": False if dev_mode else True,
             "gpt": publication_config["editorial"].get("gpt", None)
             if not disable_gpt
@@ -175,11 +173,10 @@ def load_publication_config(
     }
 
 
-def get_subscriber_list(bucket_path, folder_name="finite_files"):
+def get_subscriber_list(folder_name="finite_files"):
     """Find the subscribers (the names of their config files) on the Finite News bucket.
 
     ARGUMENTS
-    bucket_path (str): The location of the S3 bucket where required files are stored.
     folder_name (str): The part of the path that contains the folder on the bucket, if present. Used to remove from .
 
     NOTE:
@@ -190,12 +187,13 @@ def get_subscriber_list(bucket_path, folder_name="finite_files"):
     List of the yml file names in the finite bucket
     """
 
-    fn_bucket = boto3.resource("s3").Bucket(bucket_path.split("//")[1].split("/")[0])
-    # Iterate through files on the bucket and select those that begin with config_
+    fn_bucket = get_fn_secret("FN_BUCKET_NAME")
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(fn_bucket)
+
+    # Get all files on the bucket that begin with config_
     return [
-        f.key.replace(f"{folder_name}/", "")
-        for f in fn_bucket.objects.filter(Prefix=f"{folder_name}/")
-        if f.key.startswith(f"{folder_name}/config_")
+        blob.name for blob in bucket.list_blobs() if blob.name.startswith("config_")
     ]
 
 
@@ -394,7 +392,7 @@ def load_subscriber_config(subscriber_config_file_name, publication_config):
     """Import subscriber-specific parameters and combine with general publication settings
 
     ARGUMENTS
-    subscriber_config_file_name (str): name of the subscriber's config YML file in the S3 bucket
+    subscriber_config_file_name (str): name of the subscriber's config YML file in the Google Cloud Storage bucket
     publication_config (dict): loaded general publication parameters
 
     RETURNS
@@ -405,7 +403,7 @@ def load_subscriber_config(subscriber_config_file_name, publication_config):
     issue = deepcopy(publication_config)  # Copy dict with nested dicts
 
     # Load subscriber's specific settings
-    subscriber_config = load_s3(issue["bucket_path"], subscriber_config_file_name)
+    subscriber_config = load_file_from_bucket(subscriber_config_file_name)
 
     # Check are we delivering this issue today?
     if not parse_frequency_config(
@@ -433,12 +431,14 @@ def load_subscriber_config(subscriber_config_file_name, publication_config):
             "No cache_path. Not logging new content or removing content already presented in last year."
         )
     else:
-        # If cache file doesn't exist, create empty file
-        if not fs.exists(issue["bucket_path"] + issue["editorial"]["cache_path"]):
-            with fs.open(
-                issue["bucket_path"] + issue["editorial"]["cache_path"], "wb"
-            ) as f:
-                f.write(b"")
+        # If cache file doesn't exist on Google Cloud Storage bucket, create empty file
+        storage_client = storage.Client()
+        bucket_name = get_fn_secret("FN_BUCKET_NAME")
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(issue["editorial"]["cache_path"])
+        if not blob.exists():
+            blob.upload_from_string("")
+
     issue["requests_timeout"] = subscriber_config.get("editorial", {}).get(
         "requests_timeout", 30
     )
@@ -508,10 +508,9 @@ def load_subscriber_configs(dev_mode, disable_gpt):
     publication_config = load_publication_config(
         dev_mode=dev_mode, disable_gpt=disable_gpt
     )
-    subscriber_list = get_subscriber_list(publication_config["bucket_path"])
     subscriber_configs = [
         load_subscriber_config(subscriber_config_file_name, publication_config)
-        for subscriber_config_file_name in subscriber_list
+        for subscriber_config_file_name in get_subscriber_list()
     ]
     # Drop Nones, which occur if today is not in the issue_frequency for that subscriber
     subscriber_configs = [c for c in subscriber_configs if c is not None]

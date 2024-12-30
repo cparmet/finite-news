@@ -6,20 +6,19 @@ readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
     "beautifulsoup4>=4.12.3",
-    "boto3>=1.35.90",
-    "botocore>=1.35.90",
     "emoji>=2.14.0",
     "env-canada>=0.7.2",
     "feedparser>=6.0.11",
+    "gcsfs>=2024.10.0",
+    "google-auth>=2.37.0",
+    "google-cloud-storage>=2.19.0",
     "matplotlib>=3.7.5",
     "openai>=1.58.1",
     "pandas>=2.0.3",
-    "s3fs>=0.4.2",
     "seaborn>=0.13.2",
     "sendgrid>=6.11.0",
     "sentence-transformers>=3.2.1",
     "torch==2.2",
-    "widgetsnbextension>=4.0.13",
     "yfinance==0.2.33",
 ]
 
@@ -31,4 +30,5 @@ dev = [
     "jupyterlab-widgets>=3.0.13",
     "pre-commit>=3.5.0",
     "ruff>=0.8.4",
+    "widgetsnbextension>=4.0.13",
 ]
