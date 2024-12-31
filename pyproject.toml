@@ -1,0 +1,34 @@
+[project]
+name = "finite-news"
+version = "2.0"
+description = "Mindful personalized email news"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "beautifulsoup4>=4.12.3",
+    "emoji>=2.14.0",
+    "env-canada>=0.7.2",
+    "feedparser>=6.0.11",
+    "gcsfs>=2024.10.0",
+    "google-auth>=2.37.0",
+    "google-cloud-storage>=2.19.0",
+    "matplotlib>=3.7.5",
+    "openai>=1.58.1",
+    "pandas>=2.0.3",
+    "seaborn>=0.13.2",
+    "sendgrid>=6.11.0",
+    "sentence-transformers>=3.2.1",
+    "torch==2.2",
+    "yfinance==0.2.33",
+]
+
+[dependency-groups]
+# Development dependencies will be installed by default in uv run and uv sync, but will not appear in the project's published metadata.
+dev = [
+    "ipykernel>=6.29.5",
+    "ipywidgets>=8.1.5",
+    "jupyterlab-widgets>=3.0.13",
+    "pre-commit>=3.5.0",
+    "ruff>=0.8.4",
+    "widgetsnbextension>=4.0.13",
+]

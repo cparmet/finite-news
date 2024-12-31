@@ -1,0 +1,11 @@
+.pre-commit-config.yaml
+app.log
+dev.ipynb
+.ruff_cache/*
+.venv/*
+*/__pycache__/*
+.ipynb_checkpoints/*
+*/.ipynb_checkpoints/*
+.DS_Store
+issues_for_*
+stocks_*

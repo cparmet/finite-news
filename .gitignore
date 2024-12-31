@@ -4,6 +4,8 @@ __pycache__/*
 */.ipynb_checkpoints/*
 dev/
 __pycache__/
-*.txt
-*.svg
-*.png
+issues_for*
+stocks_*
+.DS_Store
+models/*
+*.log

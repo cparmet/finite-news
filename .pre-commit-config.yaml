@@ -1,0 +1,22 @@
+
+# Keep uv-lock up-to-date after pre-commit changes.
+repos:
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.5.13
+    hooks:
+      - id: uv-lock
+
+  # Auto-export uv.lock to requirements.txt
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.5.13
+    hooks:
+      - id: uv-export
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff # linter
+        args: [--fix]
+      - id: ruff-format # formatter
