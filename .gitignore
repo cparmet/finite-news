@@ -8,4 +8,4 @@ issues_for*
 stocks_*
 .DS_Store
 models/*
-*.log
+app.log
