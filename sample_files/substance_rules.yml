@@ -2,10 +2,8 @@
 # that aren't really reporting something that happened yesterday.
 # They may be clickbait, opinion, or website noise
 
-# Below are sample rules. I've found they do more than GPT to improve quality of headlines.
-# Edit or expand the list as you like. It helps to update them over time.
-# Note: When a single quote mark is required, always use '. 
-# The special quote marks like ’ get cleaned out of headlines before these rules are applied.
+# Below are sample rules. It helps to update them over time with trial and error to catch more junk.
+# Note: When a single quote mark is required, always use '. The special quote marks like ’ get cleaned out of headlines before these rules are applied.
 
 cant_begin_with: 
   - why

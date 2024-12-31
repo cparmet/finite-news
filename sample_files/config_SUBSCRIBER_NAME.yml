@@ -53,7 +53,7 @@ sources:
       direction_id: 1 # Required. 1 for inbound, 0 for outbound
   stocks:
     frequency: monthly # see above for options
-    day_of_month: 26 # In UTC as of time notebook is executed. Blank = 1
+    day_of_month: 26 # In UTC as of time code is executed. Blank = 1
     tickers: # one row for each plot. Helpful to separate stocks with similar prices onto different plots.
       - TICKER1, TICKER2
       - TICKER3, TICKER4, TICKER5
