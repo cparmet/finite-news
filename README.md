@@ -70,9 +70,9 @@ Finite News is Python code that's set up as a Google Cloud Run job. It could be 
     - And update the code calls to `run_finite_news()` (in `run.py` and `dev.ipynb`) by adding the argument `disable_gpt=False`.
 9. Test locally using the notebook `dev.ipynb`.
     - Select the virtual environment `.venv` in the project folder (created when you did `uv sync`). 
-    - To run Python scripts directly from your local environment, you can simply use `uv run python run.py`.
+    - To run Python scripts directly from your local environment, you can simply use `uv run run.py`.
 10. Deploy.
-    - If you use a local cron job, you can schedule the command in this project directory and run as `uv run python run.py`.
+    - If you use a local cron job, you can schedule the command in this project directory and run as `uv run run.py`.
     - To run it in the cloud as a Google Cloud Run job:
         - Follow the general steps of this [quickstart](https://cloud.google.com/run/docs/quickstarts/jobs/build-create-python). 
         - Enable Google Cloud Run and configure your computer to operate it with the `gcloud` command line utility. 
