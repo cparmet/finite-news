@@ -4,6 +4,7 @@ from sendgrid import Attachment, SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from datetime import date, datetime
 import logging
+import os
 import sys
 import traceback
 
@@ -264,6 +265,9 @@ def run_finite_news(dev_mode=True, disable_gpt=True, logging_level="warning"):
     RETURNS
     None
     """
+    # Avoids unnecessary disablement of parallelism
+    os.environ["TOKENIZERS_PARALLELISM"] = "true"
+
     if "ipykernel" in sys.modules:
         ## Housekeeping for notebook environments
         # TQDM in notebook mode
