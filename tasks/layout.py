@@ -191,12 +191,24 @@ def format_issue(issue_config, content, log_stream=None):
 
     # Credits section
     # We need this car_talk_block variable later too
-    car_talk_block = (
-        "<p>" + get_car_talk_credit() + "</p><br>"
-        if issue_config["editorial"]["add_car_talk_credit"]
-        else ""
-    )
+    try:
+        car_talk_credit = get_car_talk_credit()
+        car_talk_block = (
+            "<p>" + car_talk_credit + "</p><br>"
+            if issue_config["editorial"]["add_car_talk_credit"]
+            else ""
+        )
+    except Exception as e:
+        logging.warning(
+            f"""
+            Malformed car talk credit {car_talk_credit}. Not added.
+            
+            {type(e)}: {e}
+            """
+        )
+        car_talk_block = ""
     html = populate_template(html, "[[CAR_TALK_CREDIT]]", car_talk_block)
+
     attributions = get_attributions(
         general_sources=issue_config["news_sources"]
         + issue_config["events_sources"]

@@ -4,8 +4,6 @@ import emoji
 from google.cloud import storage
 import logging
 import openai
-import os
-from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 from time import sleep
 
@@ -176,33 +174,22 @@ def apply_substance_rules(headlines, substance_rules):
     return kept_headlines
 
 
-def smart_dedup(headlines, smart_dedup_config, prefaces_to_ignore=[]):
+def smart_dedup(model, headlines, smart_dedup_config, prefaces_to_ignore=[]):
     """Use semantic de-duping to avoid showing two headlines about the same news events, even if they use different words.
 
     ARGUMENTS
+    model (SentenceTransformer): The preloaded model to use for semantic de-duping, or None if no model was loaded
     headlines (list of str): The headlines from research
     smart_dedup_config (dict): Publication's settings for using the smart deduplication
     prefaces_to_ignore (list): A list of repeated prefaces that may appear at beginnings of headlines, if we want smart_dedup to ignore them when computing headline similarity.
                                So we don't get high similarity just because two headlines start with "🍻 FiniteBrews: " for example.
 
     RETURNS
-    List of headlines after de-duplication
+    List of headlines after de-duplication if a model was provided; else the original list of headlines
     """
+    if not model:
+        return headlines
     try:
-        # Validate that the local model exists
-        if not os.path.exists(smart_dedup_config["path_to_model"]):
-            logging.warning(
-                f"""
-                Smart deduper failed. Local path to model doesn't exist. See README.md for setup.
-                
-                path_to_model: {smart_dedup_config['path_to_model']}
-                """
-            )
-            return headlines
-
-        # Load it
-        model = SentenceTransformer(smart_dedup_config["path_to_model"])
-
         # First, temporarily remove prefaces to headlines.
         # TODO: Refactor so that FiniteNews doesn't add prefaces until after editing. Then we can avoid this hokey pokey move.
         headlines_clean = headlines
@@ -371,8 +358,8 @@ def clean_headline(headline, enforce_trailing_period=True):
 def edit_headlines(
     raw_headlines,
     issue_config,
+    smart_dedup_model=None,
     filter_for_substance=True,
-    smart_deduplicate=True,
     enforce_trailing_period=True,
     sources_type="news_sources",
 ):
@@ -381,8 +368,8 @@ def edit_headlines(
     ARGUMENTS
     raw_headlines (list): List of string headlines, original candidates for the issue
     issue_config (dict): The settings for the issue
+    smart_dedup_model (SentenceTransformer): Optional, a model to use for smart deduplication of similar headlines
     filter_for_substance (bool): Apply rules ± LLM to remove non-substantive headlines
-    smart_deduplicate (bool): When headlines have similar meaning, only keep one in the set.
     enforce_trailing_period (bool): Whether to ensure headlines end in a period. True for news and alerts. False for image sections.
     sources_type (str): The name of the key in issue_config to get the lists of sources for these headlines, so we can find their prefaces used.
 
@@ -416,17 +403,15 @@ def edit_headlines(
             )
         else:
             logging.info("Did not apply LLM substance model. GPT not configured.")
-    # Finally, smart deduplicate (by semantic similarity) the remaining headlines that are individually fine options.
-    if (
-        edited_headlines
-        and smart_deduplicate
-        and issue_config["editorial"]["smart_deduper"]
-    ):
+    # Finally, smart deduplicate (by semantic similarity) the remaining headlines, that are individually fine options.
+    # TODO: Better to instead add prefaces after all this editing
+    if edited_headlines and smart_dedup_model:
         prefaces_to_ignore = [
             source.get("preface", None) for source in issue_config[sources_type]
         ]
         prefaces_to_ignore = [p for p in prefaces_to_ignore if p]
         edited_headlines = smart_dedup(
+            smart_dedup_model,
             edited_headlines,
             issue_config["editorial"]["smart_deduper"],
             prefaces_to_ignore,

@@ -30,5 +30,6 @@ dev = [
     "jupyterlab-widgets>=3.0.13",
     "pre-commit>=3.5.0",
     "ruff>=0.8.4",
+    "snakeviz>=2.2.1",
     "widgetsnbextension>=4.0.13",
 ]
