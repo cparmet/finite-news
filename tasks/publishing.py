@@ -282,7 +282,12 @@ def run_finite_news(dev_mode=True, disable_gpt=True, logging_level="warning"):
     )
     subscriber_configs = load_subscriber_configs(publication_config)
     smart_dedup_model = load_smart_dedup_model(
-        publication_config["editorial"].get("path_to_model", None)
+        publication_config["editorial"]
+        .get(
+            "smart_deduper",
+            {},
+        )
+        .get("path_to_model", None)
     )
 
     for subscriber_config in tqdm(subscriber_configs):

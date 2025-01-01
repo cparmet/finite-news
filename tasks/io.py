@@ -547,7 +547,11 @@ def load_smart_dedup_model(path_to_model):
             return None
 
         # Load it
-        return SentenceTransformer(path_to_model)
+        logging.info("Loading smart deduper model...")
+        model = SentenceTransformer(path_to_model)
+        logging.info("Loaded smart deduper model.")
+        return model
+
     except Exception as e:
         logging.warning(
             f"""
