@@ -17,6 +17,6 @@ gcloud run jobs deploy $JOB_NAME \
     --region $FN_REGION \
     --project=$FN_PROJECT_ID \
     --set-secrets=FN_BUCKET_NAME=FN_BUCKET_NAME:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,SENDGRID_API_KEY=SENDGRID_API_KEY:latest \
-    --memory="1Gi" \
+    --memory="2Gi" \
     --task-timeout="45m"
     
