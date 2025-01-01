@@ -4,9 +4,15 @@ from sendgrid import Attachment, SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from datetime import date, datetime
 import logging
+import sys
 import traceback
 
-from tasks.io import init_logging, load_subscriber_configs
+from tasks.io import (
+    init_logging,
+    load_smart_dedup_model,
+    load_publication_config,
+    load_subscriber_configs,
+)
 from tasks.editing import edit_headlines, unnest_list, cache_issue_content
 from tasks.layout import format_issue
 from tasks.io import get_fn_secret
@@ -91,12 +97,13 @@ def deliver_issue(issue_config, html, images):
         )
 
 
-def create_issue(issue_config, log_stream, dev_mode=False):
+def create_issue(issue_config, log_stream, smart_dedup_model=None, dev_mode=False):
     """Populate the content of Finite News customized for one subscriber
 
     ARGUMENTS
     issue_config (dict): The settings for the issue
     log_stream (StringIO object): In-memory file-like object that collects results from logging during the Finite News run
+    smart_dedup_model (SentenceTransformer): Optional, a model to use for smart deduplication of similar headlines
     dev_mode (bool): If we're in dev/debug, output plots to local files too.
 
     RETURNS
@@ -116,7 +123,11 @@ def create_issue(issue_config, log_stream, dev_mode=False):
     news_headlines = dedup(news_headlines)
     # Start collecting items we don't want to repeat in the next issue. Do before editing, which dedups using that cache.
     content_to_cache = news_headlines
-    headlines = edit_headlines(news_headlines, issue_config)
+    headlines = edit_headlines(
+        raw_headlines=news_headlines,
+        issue_config=issue_config,
+        smart_dedup_model=smart_dedup_model,
+    )
 
     # Sports: Get tonight's games for tracked teams
     # Note: These are not added to content_to_cache, so they are not cached in cache_path file or de-duped from the last issue
@@ -146,7 +157,10 @@ def create_issue(issue_config, log_stream, dev_mode=False):
     content_to_cache += alerts
     # Remove exact repeats, but don't try to remove non-substantive content or smart dedup (MBTA can have multiple, semantically similar alerts)
     alerts = edit_headlines(
-        alerts, issue_config, filter_for_substance=False, smart_deduplicate=False
+        raw_headlines=alerts,
+        issue_config=issue_config,
+        smart_dedup_model=None,  # Override publication_config
+        filter_for_substance=False,
     )
 
     if issue_config["forecast"]:
@@ -197,10 +211,10 @@ def create_issue(issue_config, log_stream, dev_mode=False):
     content_to_cache += image_urls
     # Don't show the image if it was in the last issue
     image_urls = edit_headlines(
-        image_urls,
-        issue_config,
+        raw_headlines=image_urls,
+        issue_config=issue_config,
         filter_for_substance=False,
-        smart_deduplicate=False,
+        smart_dedup_model=None,  # Override publication_config
         enforce_trailing_period=False,
     )
 
@@ -243,16 +257,15 @@ def run_finite_news(dev_mode=True, disable_gpt=True, logging_level="warning"):
         - output plots to local files
     disable_gpt (bool): If True, don't call the GPT API and incur costs, for example during dev or debug cycles.
     logging_level (level from logging library): The deepest granularity of log messages to track
-        -  Use "warning" by default
+        - Use "warning" by default
         - Use "info" to get more detailed FN messages for debugging
         - Use "debug" to get lower-level messages from dependencies
 
     RETURNS
     None
     """
-    if dev_mode:
+    if "ipykernel" in sys.modules:
         ## Housekeeping for notebook environments
-
         # TQDM in notebook mode
         from tqdm import TqdmExperimentalWarning
         import warnings
@@ -264,9 +277,19 @@ def run_finite_news(dev_mode=True, disable_gpt=True, logging_level="warning"):
         from tqdm import tqdm
 
     log_stream = init_logging(logging_level, dev_mode)
-    for subscriber_config in tqdm(load_subscriber_configs(dev_mode, disable_gpt)):
+    publication_config = load_publication_config(
+        dev_mode=dev_mode, disable_gpt=disable_gpt
+    )
+    subscriber_configs = load_subscriber_configs(publication_config)
+    smart_dedup_model = load_smart_dedup_model(
+        publication_config["editorial"].get("path_to_model", None)
+    )
+
+    for subscriber_config in tqdm(subscriber_configs):
         try:
-            html, images = create_issue(subscriber_config, log_stream, dev_mode)
+            html, images = create_issue(
+                subscriber_config, log_stream, smart_dedup_model, dev_mode
+            )
             deliver_issue(subscriber_config, html, images)
         except Exception as e:
             # During dev or debugging, raise exception and show traceback in notebook.

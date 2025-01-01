@@ -5,8 +5,9 @@ from copy import deepcopy
 from datetime import date
 from io import StringIO
 from google.cloud import storage
-import os
 import logging
+import os
+from sentence_transformers import SentenceTransformer
 import yaml
 
 
@@ -494,20 +495,16 @@ def load_subscriber_config(subscriber_config_file_name, publication_config):
     return issue
 
 
-def load_subscriber_configs(dev_mode, disable_gpt):
+def load_subscriber_configs(publication_config):
     """Create the config file needed to generate each issue, combining publication and subscriber settings.
 
     ARGUMENTS
-    dev_mode (bool): If True we're in development or debug mode, so don't send emails or modify headline_logs.
-    disable_gpt (bool): If True, don't call the GPT API and incur costs, for example during dev or debug cycles.
+    publication_config (dict): loaded general publication parameters
 
     RETURNS
     List of issue_configs, one for each subscriber we need to generate an issue for
     """
 
-    publication_config = load_publication_config(
-        dev_mode=dev_mode, disable_gpt=disable_gpt
-    )
     subscriber_configs = [
         load_subscriber_config(subscriber_config_file_name, publication_config)
         for subscriber_config_file_name in get_subscriber_list()
@@ -519,3 +516,46 @@ def load_subscriber_configs(dev_mode, disable_gpt):
     # Allows the admin email issue(s) to include logging warnings from the non-admin issues.
     subscriber_configs = sorted(subscriber_configs, key=lambda x: x["admin"])
     return subscriber_configs
+
+
+def load_smart_dedup_model(path_to_model):
+    """Load the Sentence Transformer model used for the Smart Deduper, if specified in config. Preload the model to reuse for all issues.
+
+    See README.md for setup.
+
+    Args:
+        path_to_model (str): Path to the local model/snapshot/hash in the project folder.
+    Returns:
+        SentenceTransformer model
+    """
+    try:
+        if not path_to_model:
+            logging.info(
+                "No path to smart deduper model provided. Skipping smart dedup."
+            )
+            return None
+
+        # Validate that the local model exists
+        elif not os.path.exists(path_to_model):
+            logging.warning(
+                f"""
+                Smart deduper failed. Local path to model provided but doesn't exist. See README.md for setup.
+                
+                path_to_model: {path_to_model}
+                """
+            )
+            return None
+
+        # Load it
+        return SentenceTransformer(path_to_model)
+    except Exception as e:
+        logging.warning(
+            f"""
+            Failed to load smart deduper model. Path exists but SentenceTransformer failed to load model at that location.
+            
+            See README.md for setup.
+
+            Exception {type(e)}: {e}
+            """
+        )
+        return None
