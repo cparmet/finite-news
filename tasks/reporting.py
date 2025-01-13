@@ -11,6 +11,8 @@ from time import sleep
 from tasks.events import get_calendar_events
 from tasks.io import get_fn_secret, parse_frequency_config
 
+feedparser.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome 75.0.3770.142 Safari/537.36"
+
 
 def dedup(li):
     """De-duplicate a list while preserving the order of elements, unlike list(set()).
@@ -491,7 +493,12 @@ def get_car_talk_credit():
             f"gs://{get_fn_secret('FN_BUCKET_NAME')}/car_talk_credits.csv"
         )
 
-        credit = pd.read_csv(path_to_car_talk_csv, header=None).sample(1).values
+        credit = (
+            pd.read_csv(path_to_car_talk_csv, header=None)
+            .dropna()  # Remove invalid credits
+            .sample(1)
+            .values
+        )
         return ": ".join(credit.flatten().tolist())
     except Exception as e:
         logging.warning(

@@ -20,3 +20,15 @@ repos:
       - id: ruff # linter
         args: [--fix]
       - id: ruff-format # formatter
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files # Check if a file >5MB is trying to be committed. It may be a sign that a data file or Notebook with Outputs is being committed, which we don't want
+        args: ["--maxkb=5000"]
+      - id: check-merge-conflict # Check for leftover merge conflict strings in the code
+      - id: check-toml # Ensure .toml files are formatted correctly
+      - id: check-yaml # Ensure .yaml files are formatted correctly
+      - id: debug-statements # Check for leftover debugger commands in the code
+      - id: detect-private-key # Check for references to private keys, which shouldn't be commited to Git
+      - id: no-commit-to-branch # Don't allow commits directly to `main`
