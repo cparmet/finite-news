@@ -346,6 +346,20 @@ def research_source(source, requests_timeout):
                 ]
                 # Drop items that have no <img> component, only <h4>
                 items = [item for item in items if "<img" in item]
+            # Extract media_thumbnail and summary keys
+            elif source.get("media_thumbnail_and_summary", False):
+                entries = feedparser.parse(source["url"]).entries
+                items = [
+                    f"""
+                        <h4>{source.get("header","")}</h4>
+                        <img src="{entry["media_thumbnail"][0].get("url", None)}">
+                        <p>{entry.get("summary", None)}</p>
+                        <p><i>{entry.get("author", None)}</i></p>
+                        """
+                    for entry in entries
+                    if "media_thumbnail" in entry
+                ]
+            # Extract the media_content key
             else:
                 urls = [
                     entry["media_content"][0].get("url", None)
