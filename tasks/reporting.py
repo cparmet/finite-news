@@ -13,6 +13,10 @@ from tasks.io import get_fn_secret, parse_frequency_config
 
 feedparser.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome 75.0.3770.142 Safari/537.36"
 
+HEADERS = {
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36"
+}
+
 
 def dedup(li):
     """De-duplicate a list while preserving the order of elements, unlike list(set()).
@@ -99,9 +103,7 @@ def scrape_source(source, requests_timeout, retry=True):
             url = source["url"]
 
         if source.get("specify_request_headers", False):
-            headers = {
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36"
-            }
+            headers = HEADERS
         else:
             headers = None
 
@@ -150,6 +152,27 @@ def scrape_source(source, requests_timeout, retry=True):
                         logging.warning(
                             f"multitag error on {source['name']} while appending tag {tag}. Maybe tag not present for all items? {str(type(e))}, {str(e)}"
                         )
+        elif source.get("img_tag", False):
+            response = requests.get(
+                source["url"],
+                headers=HEADERS,  # Specify request headers by default
+                timeout=requests_timeout,
+            )
+            soup = BeautifulSoup(
+                response.text, features=source.get("parser", "html.parser")
+            )
+            img_element = soup.find_all("img")[source.get("img_tag_number", 0)]
+
+            src = img_element.attrs.get("src", None)
+            if src:
+                items = [
+                    f"""
+                            <h4>{source.get("header","")}</h4>
+                            <img src="{src}">"""
+                ]
+            else:
+                items = []
+
         else:
             items = soup.find_all(source["tag"])
 
@@ -193,11 +216,12 @@ def scrape_source(source, requests_timeout, retry=True):
             if source.get("add_http_img", False):
                 src = f"http:{src}"
             items = [f"""<h4>{header}</h4><img alt="{alt}" src="{src}"><p>{text}</p>"""]
+
         elif "split_char" in source:
             items = [
                 item for item in items.get_text().split(source["split_char"]) if item
             ]
-        elif "multitag_group" not in source:
+        elif "multitag_group" not in source and not source.get("img_tag", False):
             # multitag scraping at this stage already has text for each item. The other approaches need us to extract the text.
             items = [item.get_text() for item in items]
 
@@ -319,7 +343,6 @@ def research_source(source, requests_timeout):
                 source["direction_id"],
                 requests_timeout,
             )
-
         # Get general content
         if source["method"] == "api":
             response = requests.get(
