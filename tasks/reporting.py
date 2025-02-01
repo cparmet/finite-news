@@ -298,9 +298,9 @@ def research_source(source, requests_timeout):
         # Get specialized content
         if source["type"] == "events_calendar":
             return get_calendar_events(source, requests_timeout)
-        if source["type"] == "reminder":
+        if source["type"] == "static":
             if parse_frequency_config(source.get("frequency", None)):
-                return [source.get("reminder_message", None)]
+                return [source.get("static_message", None)]
             else:
                 return []
         if source["type"] == "mbta_alerts":

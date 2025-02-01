@@ -206,7 +206,7 @@ def create_issue(issue_config, log_stream, smart_dedup_model=None, dev_mode=Fals
     image_urls = [
         research_source(source, issue_config["requests_timeout"])
         for source in issue_config["image_sources"]
-        if source["type"] == "image_url"
+        if source["type"] in ["image_url", "static"]
     ]
     image_urls = unnest_list([element for element in image_urls if element])
     content_to_cache += image_urls
