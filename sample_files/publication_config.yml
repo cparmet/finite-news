@@ -244,6 +244,7 @@ image_sources:
         url: "http://<url>.rss"
         header: Latest image
         max_items: 1
+
     # The next example returns the latest <img> item posted on an RSS feed
     # This time, we parse the <img> in HTML that stored under the "summary" key of the RSS entry
     -
@@ -255,3 +256,23 @@ image_sources:
         get_img_tag_under_this_key: "summary" # <---- Only difference from above
         header: Latest image
         max_items: 1
+
+    # And this time we get the <img> from the media_thumbnail key of the RSS entry, and the caption from the "summary" key
+    -      
+        name: name of source in your words
+        category: category in your words
+        type: image_url
+        method: rss_images
+        url: "http://<url>.rss"
+        media_thumbnail_and_summary: true
+        max_items: 1  
+
+    # We find the nth <img> tag on a webpage, and get its `src` attribute
+    - 
+        name: name of source in your words
+        category: category in your words
+        type: image_url
+        method: scrape
+        url: url
+        img_tag: true
+        img_tag_number: 2  # Which <img> tag on the page? 1 is first 
