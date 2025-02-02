@@ -3,7 +3,7 @@
 import logging
 import pandas as pd
 import requests
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import pytz
 
 
@@ -207,3 +207,168 @@ def edit_sports_headlines(headlines, teams):
             cleaned_headlines.append(headline)
         teams_already_reported.update(teams_found)
     return cleaned_headlines
+
+
+def build_nba_player_table(team_stats):
+    table = f"""<h5 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #212529; margin: 10px 0; font-size: 1rem;">{team_stats['teamName']}</h5>
+               <table style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; 
+                      font-size: 0.75rem; 
+
+                      width: auto; 
+                      border-collapse: collapse; 
+                      background: white; 
+                      border-radius: 8px; 
+                      overflow: hidden; 
+                      box-shadow: 0 1px 3px rgba(0,0,0,0.12);">
+               <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                 <th style="padding: 12px 8px; text-align: left; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Player</th>
+                 <th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Min</th>
+                 <th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Pts</th>
+                 <th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Reb</th>
+                 <th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Ast</th>
+                 <th style="padding: 12px 8px; text-align: center; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">FG</th>
+                 <th style="padding: 12px 8px; text-align: center; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">3PT</th>
+                 <th style="padding: 12px 8px; text-align: center; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">FT</th>
+               </tr>"""
+    for player in team_stats["players"]:
+        stats = player["statistics"]
+        minutes = stats["minutesCalculated"].replace("PT", "").replace("M", "")
+        minutes = str(int(minutes)) if minutes != "00" else "0"
+
+        if minutes == "0":
+            continue
+
+        table += f"""<tr style="border-bottom: 1px solid #dee2e6; transition: background-color 0.2s;">
+                    <td style="padding: 12px 8px; text-align: left; color: #212529; font-weight: 500;">{player['name']}</td>
+                    <td style="padding: 12px 8px; text-align: right; color: #212529;">{minutes}</td>
+                    <td style="padding: 12px 8px; text-align: right; color: #212529;">{stats['points']}</td>
+                    <td style="padding: 12px 8px; text-align: right; color: #212529;">{stats['reboundsTotal']}</td>
+                    <td style="padding: 12px 8px; text-align: right; color: #212529;">{stats['assists']}</td>
+                    <td style="padding: 12px 8px; text-align: center; color: #212529;">{stats['fieldGoalsMade']}-{stats['fieldGoalsAttempted']}</td>
+                    <td style="padding: 12px 8px; text-align: center; color: #212529;">{stats['threePointersMade']}-{stats['threePointersAttempted']}</td>
+                    <td style="padding: 12px 8px; text-align: center; color: #212529;">{stats['freeThrowsMade']}-{stats['freeThrowsAttempted']}</td>
+                    </tr>"""
+    return table + "</table>"
+
+
+def get_nba_box_score(team_name, requests_timeout):
+    """Get box score for a team's most recent completed game within last 24 hours.
+
+    ARGUMENTS:
+    team_name (str): NBA team such as "Celtics" or "Lakers"
+    requests_timeout (int): Number of seconds to wait before giving up on HTTP request
+
+    RETURNS:
+    HTML string with formatted box score tables, or None if no recent completed game
+    """
+    try:
+        # Get today's scoreboard
+        url = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
+        r = requests.get(url, timeout=requests_timeout)
+        schedule = r.json()
+
+        # Find most recent completed game for team
+        game_id = None
+        game_end_time = None
+        now_utc = datetime.now(pytz.UTC)
+
+        for gameday in reversed(schedule["leagueSchedule"]["gameDates"]):
+            for game in gameday["games"]:
+                if (
+                    game["homeTeam"]["teamName"] == team_name
+                    or game["awayTeam"]["teamName"] == team_name
+                ):
+                    if game["gameStatus"] == 3:  # Completed games
+                        game_start_time = datetime.fromisoformat(
+                            game["gameDateTimeUTC"].replace("Z", "+00:00")
+                        )
+                        game_end_time = game_start_time + timedelta(hours=3, minutes=30)
+                        if now_utc - game_end_time < timedelta(hours=24):
+                            game_id = game["gameId"]
+                            break
+            if game_id:
+                break
+
+        if not game_id:
+            return None
+
+        # Get detailed box score data
+        box_url = (
+            f"https://cdn.nba.com/static/json/liveData/boxscore/boxscore_{game_id}.json"
+        )
+        box = requests.get(box_url, timeout=requests_timeout).json()["game"]
+
+        # Build quarter-by-quarter scoring table
+        periods = box["homeTeam"]["periods"]
+        home_scores = [p["score"] for p in periods]
+        away_scores = [p["score"] for p in box["awayTeam"]["periods"]]
+
+        quarter_table = """<table style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; 
+                                 font-size: 0.75rem; 
+                                 width: fit-content; 
+                                 border-collapse: collapse; 
+                                 background: white; 
+                                 border-radius: 8px; 
+                                 overflow: hidden; 
+                                 box-shadow: 0 1px 3px rgba(0,0,0,0.12); 
+                                 margin-bottom: 20px;">
+                          <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                            <th style="padding: 12px 8px; text-align: left; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Team</th>"""
+        for i in range(len(periods)):
+            quarter_table += f'<th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Q{i+1}</th>'
+        quarter_table += '<th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Final</th></tr>'
+
+        quarter_table += f"""<tr style="border-bottom: 1px solid #dee2e6;">
+                            <td style="padding: 12px 8px; text-align: left; font-weight: 500; color: #212529;">{box['homeTeam']['teamName']}</td>"""
+        for score in home_scores:
+            quarter_table += f'<td style="padding: 12px 8px; text-align: right; color: #212529;">{score}</td>'
+        quarter_table += f'<td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #212529;">{box["homeTeam"]["score"]}</td></tr>'
+
+        quarter_table += f"""<tr style="border-bottom: 1px solid #dee2e6;">
+                            <td style="padding: 12px 8px; text-align: left; font-weight: 500; color: #212529;">{box['awayTeam']['teamName']}</td>"""
+        for score in away_scores:
+            quarter_table += f'<td style="padding: 12px 8px; text-align: right; color: #212529;">{score}</td>'
+        quarter_table += f'<td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #212529;">{box["awayTeam"]["score"]}</td></tr></table>'
+
+        home_table = build_nba_player_table(box["homeTeam"])
+        away_table = build_nba_player_table(box["awayTeam"])
+
+        # Determine winner and loser
+        home_score = box["homeTeam"]["score"]
+        away_score = box["awayTeam"]["score"]
+        if home_score > away_score:
+            if team_name == box["homeTeam"]["teamName"]:
+                game_header = f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                                        color: #212529; 
+                                        margin: 20px 0; 
+                                        font-size: 1.2rem;">{team_name} beat {box['awayTeam']['teamName']} {home_score}-{away_score}</h4>"""
+            else:
+                game_header = f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                                        color: #212529; 
+                                        margin: 20px 0; 
+                                        font-size: 1.2rem;">{team_name} lose to {box['homeTeam']['teamName']} {home_score}-{away_score}</h4>"""
+        else:
+            if team_name == box["awayTeam"]["teamName"]:
+                game_header = f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                                        color: #212529; 
+                                        margin: 20px 0; 
+                                        font-size: 1.2rem;">{team_name} beat {box['homeTeam']['teamName']} {away_score}-{home_score}</h4>"""
+            else:
+                game_header = f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                                        color: #212529; 
+                                        margin: 20px 0; 
+                                        font-size: 1.2rem;">{team_name} lose to {box['awayTeam']['teamName']} {away_score}-{home_score}</h4>"""
+
+        return f"""<div style="max-width: 100%; overflow-x: auto;">
+                    {game_header}
+                    {quarter_table}
+                    {home_table}
+                    <div style="margin: 20px 0;"></div>
+                    {away_table}
+                  </div>""".replace("\n", "")
+
+    except Exception as e:
+        logging.warning(
+            f"NBA box score error for {team_name}: {str(type(e))}, {str(e)}"
+        )
+        return None
