@@ -210,6 +210,15 @@ def edit_sports_headlines(headlines, teams):
 
 
 def build_nba_player_table(team_stats):
+    """Build an HTML table displaying NBA player statistics for a team's recent game.
+
+    ARGUMENTS
+    team_stats (dict): A dictionary containing the team's name, the game's date, and a list of player statistics.
+
+    RETURNS
+    HTML table displaying player statistics for the game.
+    """
+
     table = f"""<h5 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #212529; margin: 10px 0; font-size: 1rem;">{team_stats['teamName']}</h5>
                <table style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; 
                       font-size: 0.75rem; 
@@ -361,10 +370,13 @@ def get_nba_box_score(team_name, requests_timeout):
 
         return f"""<div style="max-width: 100%; overflow-x: auto;">
                     {game_header}
-                    {quarter_table}
-                    {home_table}
-                    <div style="margin: 20px 0;"></div>
-                    {away_table}
+                    <details>
+                        <summary style="cursor: pointer; padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; margin-bottom: 10px;">Box score</summary>
+                        {quarter_table}
+                        {home_table}
+                        <div style="margin: 20px 0;"></div>
+                        {away_table}
+                    </details>
                   </div>""".replace("\n", "")
 
     except Exception as e:
