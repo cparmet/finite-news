@@ -6,6 +6,31 @@ import requests
 from datetime import date, datetime, timedelta
 import pytz
 
+# Scoreboard inline CSS styles
+SCOREBOARD_FONT_FAMILY = """
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
+"""
+SCOREBOARD_BASE_TEXT_COLOR = "color: #212529"
+SCOREBOARD_HEADLINE_STYLE = f"{SCOREBOARD_FONT_FAMILY}; {SCOREBOARD_BASE_TEXT_COLOR}; margin: 20px 0; font-size: 1.2rem;"
+SCOREBOARD_TABLE_FONT_FAMILY = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif"
+SCOREBOARD_TABLE_STYLE = """
+    font-size: 0.75rem;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12)
+"""
+SCOREBOARD_HEADER_CELL_STYLE = """
+    padding: 12px 8px;
+    text-align: left;
+    color: #212529;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px
+"""
+SCOREBOARD_DATA_CELL_STYLE = "padding: 12px 8px; text-align: left; color: #212529"
+
 
 def get_todays_nba_game(team_name, requests_timeout):
     """Call the NBA API to find out if a team is playing today.
@@ -261,28 +286,17 @@ def get_nba_game_headline(box, team_name):
 
     home_score = box["homeTeam"]["score"]
     away_score = box["awayTeam"]["score"]
+
     if home_score > away_score:
         if team_name == box["homeTeam"]["teamName"]:
-            return f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                                    color: #212529; 
-                                    margin: 20px 0; 
-                                    font-size: 1.2rem;">🏀 {team_name} beat {box['awayTeam']['teamName']} {home_score}-{away_score}</h4>"""
+            return f"""<h4 style="{SCOREBOARD_HEADLINE_STYLE}">🏀 {team_name} beat {box['awayTeam']['teamName']} {home_score}-{away_score}</h4>"""
         else:
-            return f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                                    color: #212529; 
-                                    margin: 20px 0; 
-                                    font-size: 1.2rem;">🏀 {team_name} lose to {box['homeTeam']['teamName']} {home_score}-{away_score}</h4>"""
+            return f"""<h4 style="{SCOREBOARD_HEADLINE_STYLE}">🏀 {team_name} lose to {box['homeTeam']['teamName']} {home_score}-{away_score}</h4>"""
     else:
         if team_name == box["awayTeam"]["teamName"]:
-            return f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                                    color: #212529; 
-                                    margin: 20px 0; 
-                                    font-size: 1.2rem;">🏀 {team_name} beat {box['homeTeam']['teamName']} {away_score}-{home_score}</h4>"""
+            return f"""<h4 style="{SCOREBOARD_HEADLINE_STYLE}">🏀 {team_name} beat {box['homeTeam']['teamName']} {away_score}-{home_score}</h4>"""
         else:
-            return f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-                                    color: #212529; 
-                                    margin: 20px 0; 
-                                    font-size: 1.2rem;">🏀 {team_name} lose to {box['awayTeam']['teamName']} {away_score}-{home_score}</h4>"""
+            return f"""<h4 style="{SCOREBOARD_HEADLINE_STYLE}">🏀 {team_name} lose to {box['awayTeam']['teamName']} {away_score}-{home_score}</h4>"""
 
 
 def build_nba_game_quarter_table(box):
@@ -298,33 +312,29 @@ def build_nba_game_quarter_table(box):
     periods = box["homeTeam"]["periods"]
     home_scores = [p["score"] for p in periods]
     away_scores = [p["score"] for p in box["awayTeam"]["periods"]]
-    quarter_table = """<table style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; 
-                            font-size: 0.75rem; 
-                            width: fit-content; 
-                            border-collapse: collapse; 
-                            background: white; 
-                            border-radius: 8px; 
-                            overflow: hidden; 
-                            box-shadow: 0 1px 3px rgba(0,0,0,0.12); 
-                            margin-bottom: 20px;">
+    quarter_table = f"""<table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; margin-bottom: 20px;">
                     <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                        <th style="padding: 12px 8px; text-align: left; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Team</th>"""
+                        <th style="{SCOREBOARD_HEADER_CELL_STYLE}">Team</th>"""
     for i in range(len(periods)):
-        quarter_table += f'<th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Q{i+1}</th>'
+        quarter_table += f'<th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Q{i+1}</th>'
 
-    quarter_table += '<th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Final</th></tr>'
+    quarter_table += f'<th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Final</th></tr>'
 
     quarter_table += f"""<tr style="border-bottom: 1px solid #dee2e6;">
-                        <td style="padding: 12px 8px; text-align: left; font-weight: 500; color: #212529;">{box['homeTeam']['teamName']}</td>"""
+                        <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{box['homeTeam']['teamName']}</td>"""
     for score in home_scores:
-        quarter_table += f'<td style="padding: 12px 8px; text-align: right; color: #212529;">{score}</td>'
-    quarter_table += f'<td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #212529;">{box["homeTeam"]["score"]}</td></tr>'
+        quarter_table += (
+            f'<td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{score}</td>'
+        )
+    quarter_table += f'<td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right; font-weight: bold;">{box["homeTeam"]["score"]}</td></tr>'
 
     quarter_table += f"""<tr style="border-bottom: 1px solid #dee2e6;">
-                        <td style="padding: 12px 8px; text-align: left; font-weight: 500; color: #212529;">{box['awayTeam']['teamName']}</td>"""
+                        <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{box['awayTeam']['teamName']}</td>"""
     for score in away_scores:
-        quarter_table += f'<td style="padding: 12px 8px; text-align: right; color: #212529;">{score}</td>'
-    quarter_table += f'<td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #212529;">{box["awayTeam"]["score"]}</td></tr></table>'
+        quarter_table += (
+            f'<td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{score}</td>'
+        )
+    quarter_table += f'<td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right; font-weight: bold;">{box["awayTeam"]["score"]}</td></tr></table>'
 
     return quarter_table
 
@@ -339,24 +349,17 @@ def build_nba_game_player_stats_table(team_stats):
     HTML table displaying player statistics for the game.
     """
 
-    table = f"""<h5 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #212529; margin: 10px 0; font-size: 1rem;">{team_stats['teamName']}</h5>
-               <table style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; 
-                      font-size: 0.75rem; 
-                      width: auto; 
-                      border-collapse: collapse; 
-                      background: white; 
-                      border-radius: 8px; 
-                      overflow: hidden; 
-                      box-shadow: 0 1px 3px rgba(0,0,0,0.12);">
+    table = f"""<h5 style="{SCOREBOARD_FONT_FAMILY}; {SCOREBOARD_BASE_TEXT_COLOR}; margin: 10px 0; font-size: 1rem;">{team_stats['teamName']}</h5>
+               <table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; width: auto;">
                <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                 <th style="padding: 12px 8px; text-align: left; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Player</th>
-                 <th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Min</th>
-                 <th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Pts</th>
-                 <th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Reb</th>
-                 <th style="padding: 12px 8px; text-align: right; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Ast</th>
-                 <th style="padding: 12px 8px; text-align: center; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">FG</th>
-                 <th style="padding: 12px 8px; text-align: center; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">3PT</th>
-                 <th style="padding: 12px 8px; text-align: center; color: #212529; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">FT</th>
+                 <th style="{SCOREBOARD_HEADER_CELL_STYLE}">Player</th>
+                 <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Min</th>
+                 <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Pts</th>
+                 <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Reb</th>
+                 <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Ast</th>
+                 <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: center;">FG</th>
+                 <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: center;">3PT</th>
+                 <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: center;">FT</th>
                </tr>"""
 
     for player in team_stats["players"]:
@@ -368,14 +371,14 @@ def build_nba_game_player_stats_table(team_stats):
             continue
 
         table += f"""<tr style="border-bottom: 1px solid #dee2e6; transition: background-color 0.2s;">
-                    <td style="padding: 12px 8px; text-align: left; color: #212529; font-weight: 500;">{player['name']}</td>
-                    <td style="padding: 12px 8px; text-align: right; color: #212529;">{minutes}</td>
-                    <td style="padding: 12px 8px; text-align: right; color: #212529;">{stats['points']}</td>
-                    <td style="padding: 12px 8px; text-align: right; color: #212529;">{stats['reboundsTotal']}</td>
-                    <td style="padding: 12px 8px; text-align: right; color: #212529;">{stats['assists']}</td>
-                    <td style="padding: 12px 8px; text-align: center; color: #212529;">{stats['fieldGoalsMade']}-{stats['fieldGoalsAttempted']}</td>
-                    <td style="padding: 12px 8px; text-align: center; color: #212529;">{stats['threePointersMade']}-{stats['threePointersAttempted']}</td>
-                    <td style="padding: 12px 8px; text-align: center; color: #212529;">{stats['freeThrowsMade']}-{stats['freeThrowsAttempted']}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{player['name']}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{minutes}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{stats['points']}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{stats['reboundsTotal']}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{stats['assists']}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: center;">{stats['fieldGoalsMade']}-{stats['fieldGoalsAttempted']}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: center;">{stats['threePointersMade']}-{stats['threePointersAttempted']}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: center;">{stats['freeThrowsMade']}-{stats['freeThrowsAttempted']}</td>
                     </tr>"""
     return table + "</table>"
 
