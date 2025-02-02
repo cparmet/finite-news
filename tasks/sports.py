@@ -322,7 +322,7 @@ def build_nba_game_quarter_table(box):
     quarter_table += f'<th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Final</th></tr>'
 
     # Add a row for each team's quarter totals
-    for team in [box["homeTeam"], box["awayTeam"]]:
+    for team in [box["awayTeam"], box["homeTeam"]]:
         # Team
         quarter_table += f"""<tr style="border-bottom: 1px solid #dee2e6;">
                         <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{team['teamName']}</td>"""
@@ -404,8 +404,8 @@ def get_nba_box_score(team_name, requests_timeout):
         box = requests.get(box_url, timeout=requests_timeout).json()["game"]
         game_headline = get_nba_game_headline(box, team_name)
         quarter_table = build_nba_game_quarter_table(box)
-        home_table = build_nba_game_player_stats_table(box["homeTeam"])
         away_table = build_nba_game_player_stats_table(box["awayTeam"])
+        home_table = build_nba_game_player_stats_table(box["homeTeam"])
 
         # Format the results
         return f"""<div style="max-width: 100%; overflow-x: auto;">
@@ -413,9 +413,9 @@ def get_nba_box_score(team_name, requests_timeout):
                     <details>
                         <summary style="cursor: pointer; padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; margin-bottom: 10px;">Game stats</summary>
                         {quarter_table}
-                        {home_table}
-                        <div style="margin: 20px 0;"></div>
                         {away_table}
+                        <div style="margin: 20px 0;"></div>
+                        {home_table}
                     </details>
                   </div>"""
 
