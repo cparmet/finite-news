@@ -42,7 +42,7 @@ def get_todays_nba_game(team_name, requests_timeout):
 
     TODO: Clean and simpify. No need to use Pandas.
 
-    ARGUMENTS:
+    ARGUMENTS
     team_name (str): NBA team such as "Celtics" or "Lakers"
     requests_timeout (int): Number of seconds to wait before giving up on an HTTP request
 
@@ -256,8 +256,8 @@ def get_recent_completed_nba_game(team_name, requests_timeout):
     for gameday in reversed(schedule["leagueSchedule"]["gameDates"]):
         for game in gameday["games"]:
             if (
-                game["gameStatus"] == 3  # Completed games
-                and (  # Our team participated
+                game["gameStatus"] == 3  # Game is completed
+                and (  # And our team participated
                     game["homeTeam"]["teamName"] == team_name
                     or game["awayTeam"]["teamName"] == team_name
                 )
@@ -310,33 +310,28 @@ def build_nba_game_quarter_table(box):
     """
 
     periods = box["homeTeam"]["periods"]
-    home_scores = [p["score"] for p in periods]
-    away_scores = [p["score"] for p in box["awayTeam"]["periods"]]
-    quarter_table = f"""<table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; margin-bottom: 20px;">
-                    <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
-                        <th style="{SCOREBOARD_HEADER_CELL_STYLE}">Team</th>"""
+    quarter_table = f"""
+        <table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; margin-bottom: 20px;">
+            <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                <th style="{SCOREBOARD_HEADER_CELL_STYLE}">Team</th>
+    """
+    # Add a column for each quarter
     for i in range(len(periods)):
         quarter_table += f'<th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Q{i+1}</th>'
-
+    # Add a column for the final score
     quarter_table += f'<th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Final</th></tr>'
 
-    quarter_table += f"""<tr style="border-bottom: 1px solid #dee2e6;">
-                        <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{box['homeTeam']['teamName']}</td>"""
-    for score in home_scores:
-        quarter_table += (
-            f'<td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{score}</td>'
-        )
-    quarter_table += f'<td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right; font-weight: bold;">{box["homeTeam"]["score"]}</td></tr>'
+    # Add a row for each team's quarter totals
+    for team in [box["homeTeam"], box["awayTeam"]]:
+        # Team
+        quarter_table += f"""<tr style="border-bottom: 1px solid #dee2e6;">
+                        <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{team['teamName']}</td>"""
+        scores = [p["score"] for p in team["periods"]]
+        for score in scores:
+            quarter_table += f'<td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{score}</td>'
+        quarter_table += f'<td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right; font-weight: bold;">{team["score"]}</td></tr>'
 
-    quarter_table += f"""<tr style="border-bottom: 1px solid #dee2e6;">
-                        <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{box['awayTeam']['teamName']}</td>"""
-    for score in away_scores:
-        quarter_table += (
-            f'<td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{score}</td>'
-        )
-    quarter_table += f'<td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right; font-weight: bold;">{box["awayTeam"]["score"]}</td></tr></table>'
-
-    return quarter_table
+    return quarter_table + "</table>"
 
 
 def build_nba_game_player_stats_table(team_stats):
@@ -349,6 +344,7 @@ def build_nba_game_player_stats_table(team_stats):
     HTML table displaying player statistics for the game.
     """
 
+    # Set up the table and header row
     table = f"""<h5 style="{SCOREBOARD_FONT_FAMILY}; {SCOREBOARD_BASE_TEXT_COLOR}; margin: 10px 0; font-size: 1rem;">{team_stats['teamName']}</h5>
                <table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; width: auto;">
                <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
@@ -362,11 +358,13 @@ def build_nba_game_player_stats_table(team_stats):
                  <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: center;">FT</th>
                </tr>"""
 
+    # Add a row for each player who played
     for player in team_stats["players"]:
         stats = player["statistics"]
         minutes = stats["minutesCalculated"].replace("PT", "").replace("M", "")
         minutes = str(int(minutes)) if minutes != "00" else "0"
 
+        # Don't add players who didn't play
         if minutes == "0":
             continue
 
@@ -394,12 +392,12 @@ def get_nba_box_score(team_name, requests_timeout):
     HTML string with formatted box score tables, or None if no recent completed game
     """
     try:
-        # Get completed game with this team in past 24 hours, if any
+        # Get the id of the completed game with this team in past 24 hours, if any
         game_id = get_recent_completed_nba_game(team_name, requests_timeout)
         if not game_id:
             return None
 
-        # Create headline and stats tables
+        # Create HTML elements to describe the game
         box_url = (
             f"https://cdn.nba.com/static/json/liveData/boxscore/boxscore_{game_id}.json"
         )
@@ -409,7 +407,7 @@ def get_nba_box_score(team_name, requests_timeout):
         home_table = build_nba_game_player_stats_table(box["homeTeam"])
         away_table = build_nba_game_player_stats_table(box["awayTeam"])
 
-        # Format the HTML
+        # Format the results
         return f"""<div style="max-width: 100%; overflow-x: auto;">
                     {game_headline}
                     <details>
