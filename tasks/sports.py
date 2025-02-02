@@ -210,12 +210,23 @@ def edit_sports_headlines(headlines, teams):
 
 
 def get_recent_completed_nba_game(team_name, requests_timeout):
-    # Get today's scoreboard
+    """
+    Get the last completed NBA game for a given team, if it started within the last 24 hours.
+
+    ARGUMENTS
+    team_name (str): The name of the team to check for a recent game
+    requests_timeout (int): Number of seconds to wait before giving up on an HTTP request
+
+    RETURNS
+    the game ID, or None if no recent completed game was found
+    """
+
+    # Get the NBA schedule and game status
     url = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
     r = requests.get(url, timeout=requests_timeout)
     schedule = r.json()
 
-    # Find most recent completed game for team
+    # Find a completed game with our team that started within the last 24 hours
     now_utc = datetime.now(pytz.UTC)
     for gameday in reversed(schedule["leagueSchedule"]["gameDates"]):
         for game in gameday["games"]:
@@ -229,16 +240,25 @@ def get_recent_completed_nba_game(team_name, requests_timeout):
                 game_start_time = datetime.fromisoformat(
                     game["gameDateTimeUTC"].replace("Z", "+00:00")
                 )
-                game_end_time = game_start_time + timedelta(hours=3, minutes=30)
-                if now_utc - game_end_time < timedelta(hours=24):
+                # If the completed game started <24 hours ago, it's new to us!
+                if now_utc - game_start_time < timedelta(hours=24):
                     return game["gameId"]
 
-    # If we get here, we didn't find a complete game with our team in the last 24 hours
+    # If we get here, we didn't find any such game
     return None
 
 
 def get_nba_game_headline(box, team_name):
-    """Create headline with final score"""
+    """Create headline with final score from a box score with our team
+
+    ARGUMENTS
+    box (dict): Box score for a completed NBA game
+    team_name (str): Name of team we're tracking
+
+    RETURNS
+    str headline with final score
+    """
+
     home_score = box["homeTeam"]["score"]
     away_score = box["awayTeam"]["score"]
     if home_score > away_score:
@@ -246,23 +266,23 @@ def get_nba_game_headline(box, team_name):
             return f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
                                     color: #212529; 
                                     margin: 20px 0; 
-                                    font-size: 1.2rem;">{team_name} beat {box['awayTeam']['teamName']} {home_score}-{away_score}</h4>"""
+                                    font-size: 1.2rem;">🏀 {team_name} beat {box['awayTeam']['teamName']} {home_score}-{away_score}</h4>"""
         else:
             return f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
                                     color: #212529; 
                                     margin: 20px 0; 
-                                    font-size: 1.2rem;">{team_name} lose to {box['homeTeam']['teamName']} {home_score}-{away_score}</h4>"""
+                                    font-size: 1.2rem;">🏀 {team_name} lose to {box['homeTeam']['teamName']} {home_score}-{away_score}</h4>"""
     else:
         if team_name == box["awayTeam"]["teamName"]:
             return f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
                                     color: #212529; 
                                     margin: 20px 0; 
-                                    font-size: 1.2rem;">{team_name} beat {box['homeTeam']['teamName']} {away_score}-{home_score}</h4>"""
+                                    font-size: 1.2rem;">🏀 {team_name} beat {box['homeTeam']['teamName']} {away_score}-{home_score}</h4>"""
         else:
             return f"""<h4 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
                                     color: #212529; 
                                     margin: 20px 0; 
-                                    font-size: 1.2rem;">{team_name} lose to {box['awayTeam']['teamName']} {away_score}-{home_score}</h4>"""
+                                    font-size: 1.2rem;">🏀 {team_name} lose to {box['awayTeam']['teamName']} {away_score}-{home_score}</h4>"""
 
 
 def build_nba_game_quarter_table(box):
@@ -396,7 +416,7 @@ def get_nba_box_score(team_name, requests_timeout):
                         <div style="margin: 20px 0;"></div>
                         {away_table}
                     </details>
-                  </div>""".replace("\n", "")
+                  </div>"""
 
     except Exception as e:
         logging.warning(
