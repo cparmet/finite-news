@@ -101,7 +101,9 @@ def format_issue(issue_config, content, log_stream=None):
 
     ARGUMENTS
     content (dict): The content to go into an issue, with these keys (although their values may be None/[]):
+        - alerts (list of str): The alerts to be reported in this issue
         - headlines (list of str): The final news headlines to be reported in this issue
+        - scoreboard (list of str): HTML formatted section with sports scores
         - forecast (dict): Forecast content, if any
         - events_html (str): HTML-formatted section with upcoming events
         - stock_plots (list of base64): List of pngs as base64
@@ -120,10 +122,17 @@ def format_issue(issue_config, content, log_stream=None):
         html, "[[SLOGAN]]", choice(issue_config.get("slogans", [""]))
     )
     html = populate_template(
-        html, "[[HEADLINES_BLOCK]]", "<h3>🗞️ News</h3>", content["headlines"]
+        html, "[[ALERTS_BLOCK]]", "<h3>🚨 Alert weeoooweeooo</h3>", content["alerts"]
     )
     html = populate_template(
-        html, "[[ALERTS_BLOCK]]", "<h3>🚨 Alert weeoooweeooo</h3>", content["alerts"]
+        html, "[[HEADLINES_BLOCK]]", "<h3>🗞️ News</h3>", content["headlines"]
+    )
+    scoreboard_block = "".join(content["scoreboard"])
+    html = populate_template(
+        html,
+        "[[SCOREBOARD_BLOCK]]",
+        f"<h3>🏟 Scoreboard</h3>{scoreboard_block}",
+        condition=scoreboard_block,
     )
 
     if content["forecast"]:

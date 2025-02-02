@@ -10,8 +10,6 @@ import pytz
 SCOREBOARD_FONT_FAMILY = """
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
 """
-SCOREBOARD_BASE_TEXT_COLOR = "color: #212529"
-SCOREBOARD_HEADLINE_STYLE = f"{SCOREBOARD_FONT_FAMILY}; {SCOREBOARD_BASE_TEXT_COLOR}; margin: 20px 0; font-size: 1.2rem;"
 SCOREBOARD_TABLE_FONT_FAMILY = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif"
 SCOREBOARD_TABLE_STYLE = """
     font-size: 0.75rem;
@@ -289,14 +287,14 @@ def get_nba_game_headline(box, team_name):
 
     if home_score > away_score:
         if team_name == box["homeTeam"]["teamName"]:
-            return f"""<h4 style="{SCOREBOARD_HEADLINE_STYLE}">🏀 {team_name} beat {box['awayTeam']['teamName']} {home_score}-{away_score}</h4>"""
+            return f"""<h4>🏀 {team_name} beat {box['awayTeam']['teamName']} {home_score}-{away_score}</h4>"""
         else:
-            return f"""<h4 style="{SCOREBOARD_HEADLINE_STYLE}">🏀 {team_name} lose to {box['homeTeam']['teamName']} {home_score}-{away_score}</h4>"""
+            return f"""<h4>🏀 {team_name} lose to {box['homeTeam']['teamName']} {home_score}-{away_score}</h4>"""
     else:
         if team_name == box["awayTeam"]["teamName"]:
-            return f"""<h4 style="{SCOREBOARD_HEADLINE_STYLE}">🏀 {team_name} beat {box['homeTeam']['teamName']} {away_score}-{home_score}</h4>"""
+            return f"""<h4>🏀 {team_name} beat {box['homeTeam']['teamName']} {away_score}-{home_score}</h4>"""
         else:
-            return f"""<h4 style="{SCOREBOARD_HEADLINE_STYLE}">🏀 {team_name} lose to {box['awayTeam']['teamName']} {away_score}-{home_score}</h4>"""
+            return f"""<h4>🏀 {team_name} lose to {box['awayTeam']['teamName']} {away_score}-{home_score}</h4>"""
 
 
 def build_nba_game_quarter_table(box):
@@ -345,7 +343,7 @@ def build_nba_game_player_stats_table(team_stats):
     """
 
     # Set up the table and header row
-    table = f"""<h5 style="{SCOREBOARD_FONT_FAMILY}; {SCOREBOARD_BASE_TEXT_COLOR}; margin: 10px 0; font-size: 1rem;">{team_stats['teamName']}</h5>
+    table = f"""<h5>{team_stats['teamName']}</h5>
                <table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; width: auto;">
                <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
                  <th style="{SCOREBOARD_HEADER_CELL_STYLE}">Player</th>
@@ -417,7 +415,7 @@ def get_nba_box_score(team_name, requests_timeout):
                         <div style="margin: 20px 0;"></div>
                         {home_table}
                     </details>
-                  </div>"""
+                  </div>""".replace("\n", "")
 
     except Exception as e:
         logging.warning(
