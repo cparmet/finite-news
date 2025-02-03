@@ -18,7 +18,12 @@ from tasks.editing import edit_headlines, unnest_list, cache_issue_content
 from tasks.layout import format_issue
 from tasks.io import get_fn_secret
 from tasks.reporting import dedup, research_source, get_screenshots
-from tasks.sports import get_todays_nba_game, edit_sports_headlines, get_todays_nhl_game
+from tasks.sports import (
+    get_todays_nba_game,
+    edit_sports_headlines,
+    get_todays_nhl_game,
+    get_nba_scoreboard,
+)
 from tasks.stocks import get_stocks_plot
 from tasks.weather import get_forecast
 
@@ -164,6 +169,15 @@ def create_issue(issue_config, log_stream, smart_dedup_model=None, dev_mode=Fals
         filter_for_substance=False,
     )
 
+    # Get scoreboard
+    if not issue_config["sports"].get("hide_nba_scoreboard", False):
+        scoreboard = get_nba_scoreboard(
+            issue_config["sports"].get("nba_teams", []),
+            issue_config["requests_timeout"],
+        )
+    else:
+        scoreboard = []
+
     if issue_config["forecast"]:
         forecast = get_forecast(issue_config["forecast"])
     else:
@@ -233,8 +247,9 @@ def create_issue(issue_config, log_stream, smart_dedup_model=None, dev_mode=Fals
     # Pull it all together
     html = format_issue(
         content={
-            "headlines": headlines,
             "alerts": alerts,
+            "headlines": headlines,
+            "scoreboard": scoreboard,
             "forecast": forecast,
             "events_html": events_html,
             "stock_plots": stock_plots,
