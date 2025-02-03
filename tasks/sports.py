@@ -449,3 +449,120 @@ def get_nba_scoreboard(nba_teams, requests_timeout):
 
     else:
         return scoreboard  # Empty list []
+
+
+def build_nhl_player_stats_table(team_name, team_stats):
+    table = f"""<h5 style="font-size: 0.8rem; margin: 8px 0;">{team_name}</h5>
+        <table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; width: auto;">
+        <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}">Player</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">TOI</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">G</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">A</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Shots</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">+/-</th>
+        </tr>"""
+    print(table)
+    # Add forwards and defensemen
+    for player in team_stats["forwards"] + team_stats["defense"]:
+        if player["toi"] > "00:00":  # Only show players who played
+            table += f"""
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{player["name"]["default"]}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["toi"]}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["goals"]}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["assists"]}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["sog"]}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["plusMinus"]}</td>
+                </tr>"""
+    return table + "</table>"
+
+
+def get_nhl_scoreboard(nhl_teams, requests_timeout):
+    """Get box scores for NHL teams' recent completed games.
+
+    ARGUMENTS
+    nhl_teams (list of str): List of team place names (e.g. "Buffalo", "Minnesota", "Montréal") or mascots for NY teams ("Islanders")
+    requests_timeout (int): Number of seconds to wait before giving up on HTTP request
+
+    RETURNS
+    List of HTML strings containing formatted box scores, or empty list if no recent games
+    """
+    try:
+        # Get today's schedule
+        url = "https://api-web.nhle.com/v1/schedule/" + date.today().strftime(
+            "%Y-%m-%d"
+        )
+        schedule = requests.get(url, timeout=requests_timeout).json()["gameWeek"][0][
+            "games"
+        ]
+
+        # Filter for completed games in last 24 hours
+        now_utc = datetime.now(pytz.UTC)
+        recent_games = []
+        for game in schedule:
+            if game["gameState"] == "OFF":
+                game_time = datetime.fromisoformat(
+                    game["startTimeUTC"].replace("Z", "+00:00")
+                )
+                if now_utc - game_time < timedelta(hours=24):
+                    recent_games.append(game)
+
+        # Build box scores for our teams' games
+        scoreboard = []
+        for game in recent_games:
+            home_team = game["homeTeam"]["placeName"]["default"]
+            away_team = game["awayTeam"]["placeName"]["default"]
+            if home_team in nhl_teams or away_team in nhl_teams:
+                game_id = game["id"]
+
+                # Get detailed box score
+                box_url = f"https://api-web.nhle.com/v1/gamecenter/{game_id}/boxscore"
+                box = requests.get(box_url, timeout=requests_timeout).json()
+
+                # Format the box score content
+                home_score = game["homeTeam"]["score"]
+                away_score = game["awayTeam"]["score"]
+
+                # Create headline
+                if home_score > away_score:
+                    headline = f"""<h4>🏒 {home_team} beat {away_team} {home_score}-{away_score}</h4>"""
+                else:
+                    headline = f"""<h4>🏒 {away_team} beat {home_team} {away_score}-{home_score}</h4>"""
+
+                away_table = build_nhl_player_stats_table(
+                    away_team, box["playerByGameStats"]["awayTeam"]
+                )
+                home_table = build_nhl_player_stats_table(
+                    home_team, box["playerByGameStats"]["homeTeam"]
+                )
+
+                # Combine all elements
+                scoreboard.append(
+                    {
+                        "teams": [home_team, away_team],
+                        "content": f"""<div style="max-width: 100%; overflow-x: auto;">
+                        {headline}
+                        <div style="display: flex; gap: 24px; flex-wrap: nowrap; overflow-x: auto;">
+                            <div style="flex: 0 0 auto;">{away_table}</div>
+                            <div style="flex: 0 0 auto;">{home_table}</div>
+                        </div>
+                    </div>""".replace("\n", ""),
+                    }
+                )
+
+        # Dedupe box scores
+        if scoreboard:
+            scoreboard_content_deduped = []
+            teams_already_reported = []
+            for box_score in scoreboard:
+                if box_score["teams"][0] not in teams_already_reported:
+                    scoreboard_content_deduped.append(box_score["content"])
+                    teams_already_reported += box_score["teams"]
+            return scoreboard_content_deduped
+
+        return []  # No games found
+
+    except Exception as e:
+        logging.warning(f"NHL scoreboard error: {str(type(e))}, {str(e)}")
+        return []
