@@ -22,7 +22,7 @@ from tasks.sports import (
     get_todays_nba_game,
     edit_sports_headlines,
     get_todays_nhl_game,
-    get_nba_box_score,
+    get_nba_scoreboard,
 )
 from tasks.stocks import get_stocks_plot
 from tasks.weather import get_forecast
@@ -170,11 +170,13 @@ def create_issue(issue_config, log_stream, smart_dedup_model=None, dev_mode=Fals
     )
 
     # Get scoreboard
-    scoreboard = [
-        get_nba_box_score(nba_team, issue_config["requests_timeout"])
-        for nba_team in issue_config["sports"].get("nba_teams", [])
-    ]
-    scoreboard = [result for result in scoreboard if result]  # Remove empty results
+    if not issue_config["sports"].get("hide_nba_scoreboard", False):
+        scoreboard = get_nba_scoreboard(
+            issue_config["sports"].get("nba_teams", []),
+            issue_config["requests_timeout"],
+        )
+    else:
+        scoreboard = []
 
     if issue_config["forecast"]:
         forecast = get_forecast(issue_config["forecast"])

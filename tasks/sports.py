@@ -387,7 +387,7 @@ def get_nba_box_score(team_name, requests_timeout):
     requests_timeout (int): Number of seconds to wait before giving up on HTTP request
 
     RETURNS:
-    HTML string with formatted box score tables, or None if no recent completed game
+    Dictionary with "teams" as list and "content" as HTML string with formatted box score tables, or None if no recent completed game
     """
     try:
         # Get the id of the completed game with this team in past 24 hours, if any
@@ -406,7 +406,11 @@ def get_nba_box_score(team_name, requests_timeout):
         home_table = build_nba_game_player_stats_table(box["homeTeam"])
 
         # Format the results
-        return f"""<div style="max-width: 100%; overflow-x: auto;">
+        return {
+            # The names of the teams in the box score, for de-duping
+            "teams": [box["homeTeam"]["teamName"], box["awayTeam"]["teamName"]],
+            # The headline and box score
+            "content": f"""<div style="max-width: 100%; overflow-x: auto;">
                     {game_headline}
                     <details>
                         <summary style="cursor: pointer; padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; margin-bottom: 10px;">Game stats</summary>
@@ -415,10 +419,35 @@ def get_nba_box_score(team_name, requests_timeout):
                         <div style="margin: 20px 0;"></div>
                         {home_table}
                     </details>
-                  </div>""".replace("\n", "")
+                  </div>""".replace("\n", ""),
+        }
 
     except Exception as e:
         logging.warning(
             f"NBA box score error for {team_name}: {str(type(e))}, {str(e)}"
         )
         return None
+
+
+def get_nba_scoreboard(nba_teams, requests_timeout):
+    scoreboard = [
+        get_nba_box_score(nba_team, requests_timeout) for nba_team in nba_teams
+    ]
+    # Remove empty results
+    scoreboard = [box_score for box_score in scoreboard if box_score]
+
+    # If we got results, dedupe them.
+    # If Lakers played Clippers and a subscriber follows both, only show the box score once
+    if scoreboard:
+        scoreboard_content_deduped = []
+        teams_already_reported = []
+        for box_score in scoreboard:
+            # If this box score has a team NOT already in the list, add it
+            if box_score["teams"][0] not in teams_already_reported:
+                # Extract just the content (HTML) from the box score dictionary
+                scoreboard_content_deduped.append(box_score["content"])
+                teams_already_reported += box_score["teams"]
+        return scoreboard_content_deduped
+
+    else:
+        return scoreboard  # Empty list []
