@@ -12,7 +12,7 @@ SCOREBOARD_FONT_FAMILY = """
 """
 SCOREBOARD_TABLE_FONT_FAMILY = "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif"
 SCOREBOARD_TABLE_STYLE = """
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     border-collapse: collapse;
     background: white;
     border-radius: 8px;
@@ -20,14 +20,14 @@ SCOREBOARD_TABLE_STYLE = """
     box-shadow: 0 1px 3px rgba(0,0,0,0.12)
 """
 SCOREBOARD_HEADER_CELL_STYLE = """
-    padding: 12px 8px;
+    padding: 8px 6px;
     text-align: left;
     color: #212529;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px
 """
-SCOREBOARD_DATA_CELL_STYLE = "padding: 12px 8px; text-align: left; color: #212529"
+SCOREBOARD_DATA_CELL_STYLE = "padding: 8px 6px; text-align: left; color: #212529"
 
 
 def get_todays_nba_game(team_name, requests_timeout):
@@ -309,7 +309,7 @@ def build_nba_game_quarter_table(box):
 
     periods = box["homeTeam"]["periods"]
     quarter_table = f"""
-        <table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; margin-bottom: 20px;">
+        <table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; margin-bottom: 16px;">
             <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
                 <th style="{SCOREBOARD_HEADER_CELL_STYLE}">Team</th>
     """
@@ -343,7 +343,7 @@ def build_nba_game_player_stats_table(team_stats):
     """
 
     # Set up the table and header row
-    table = f"""<h5>{team_stats['teamName']}</h5>
+    table = f"""<h5 style="font-size: 0.8rem; margin: 8px 0;">{team_stats['teamName']}</h5>
                <table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; width: auto;">
                <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
                  <th style="{SCOREBOARD_HEADER_CELL_STYLE}">Player</th>
@@ -412,13 +412,11 @@ def get_nba_box_score(team_name, requests_timeout):
             # The headline and box score
             "content": f"""<div style="max-width: 100%; overflow-x: auto;">
                     {game_headline}
-                    <details>
-                        <summary style="cursor: pointer; padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; margin-bottom: 10px;">Game stats</summary>
-                        {quarter_table}
-                        {away_table}
-                        <div style="margin: 20px 0;"></div>
-                        {home_table}
-                    </details>
+                    {quarter_table}
+                    <div style="display: flex; gap: 24px; flex-wrap: nowrap; overflow-x: auto;">
+                        <div style="flex: 0 0 auto;">{away_table}</div>
+                        <div style="flex: 0 0 auto;">{home_table}</div>
+                    </div>
                   </div>""".replace("\n", ""),
         }
 
