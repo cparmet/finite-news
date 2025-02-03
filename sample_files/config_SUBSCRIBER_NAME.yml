@@ -59,9 +59,10 @@ sources:
       - TICKER3, TICKER4, TICKER5
   image_categories:
     - Universe
-sports: # Optional section and subsections, get headlines about upcoming games?
+sports: # Optional section and subsections, get yesterday's scores and heads-up about today's games
     nba_teams:
         - Knicks # Use the mascot name
+    # hide_nba_scoreboard: True # Add this to only get heads-up on tonight's games in the headlines but not yesterday's box scores for those teams
     nhl_teams:
         - Buffalo, Islanders, Minnesota, Montréal # Use the place name, except for NY teams use the Mascot
 
@@ -84,9 +85,9 @@ forecast:
 
   # OPTION B: Canadian forecasts
   # Enter lat and lon for the location, and give the location a name like a town
-  lat: FLOAT
-  lon: FLOAT
-  location_name: STRING
+  # lat: FLOAT
+  # lon: FLOAT
+  # location_name: STRING
 
 # The newspaper slogan that goes under the logo in each issue.
 # One slogan from the list is selected at random each day.

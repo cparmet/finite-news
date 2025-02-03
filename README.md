@@ -15,7 +15,8 @@ Finite News can...
      - Applies rules and large language models (LLMs) to remove opinions and clickbait, consolidate related headlines, and only show news you haven't seen before.
  - Forecast your local weather.
  - Get you the latest XKCD comic and James Webb photo.
- - Deliver custom alerts, like when your favorite team plays tonight.
+ - Tell you when your favorite team plays tonight and last night's scoreboard.
+ - Deliver custom alerts, like when your train station has a major delay.
  - List upcoming events of interest to you.
   
 ## 📰 Make your own newspaper
