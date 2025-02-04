@@ -541,15 +541,38 @@ def get_nhl_scoreboard(nhl_teams, requests_timeout):
     if not nhl_teams:
         return []
     try:
-        # Get today's schedule
-        url = "https://api-web.nhle.com/v1/schedule/" + date.today().strftime(
+        # Get today and yesterday's schedules
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+        schedule = []
+
+        # Get yesterday's games
+        url_yesterday = "https://api-web.nhle.com/v1/schedule/" + yesterday.strftime(
             "%Y-%m-%d"
         )
-        schedule = requests.get(url, timeout=requests_timeout).json()["gameWeek"][0][
-            "games"
-        ]
+        schedule_yesterday = requests.get(
+            url_yesterday, timeout=requests_timeout
+        ).json()["gameWeek"][0]["games"]
+        schedule.extend(schedule_yesterday)
 
-        # Filter for completed games in last 24 hours
+        # Get today's games
+        url_today = "https://api-web.nhle.com/v1/schedule/" + today.strftime("%Y-%m-%d")
+        schedule_today = requests.get(url_today, timeout=requests_timeout).json()[
+            "gameWeek"
+        ][0]["games"]
+        schedule.extend(schedule_today)
+
+        # # Get today's schedule
+        # url = "https://api-web.nhle.com/v1/schedule/" + date.today().strftime(
+        #     "%Y-%m-%d"
+        # )
+        # schedule = (
+        #     requests.get(url, timeout=requests_timeout)
+        #     .json()
+        #     ["gameWeek"][0]["games"]
+        # )
+
+        # Filter today and yesterday's schedule for games that started in last 24 hours
         now_utc = datetime.now(pytz.UTC)
         recent_games = []
         for game in schedule:
