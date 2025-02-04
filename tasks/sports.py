@@ -603,7 +603,7 @@ def get_nhl_scoreboard(nhl_teams, requests_timeout):
                 if home_score > away_score:
                     headline = f"""<h4>🏒 {home_team} beat {away_team} {home_score}-{away_score}</h4>"""
                 elif home_score < away_score:
-                    headline = f"""<h4>🏒 {home_team} lost to {away_team} {home_score}-{away_score}</h4>"""
+                    headline = f"""<h4>🏒 {home_team} lost to {away_team} {away_score}-{home_score}</h4>"""
                 else:  # tie
                     headline = f"""<h4>🏒 {home_team} tied {away_team} {home_score}-{away_score}</h4>"""
 
