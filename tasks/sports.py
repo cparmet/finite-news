@@ -1,4 +1,8 @@
-"""🏀 Sports! Functions to report and edit sports content"""
+"""
+🏀 Sports! Functions to report and edit sports content
+
+TODO: Move styles to a CSS file
+"""
 
 import logging
 import pandas as pd
@@ -413,7 +417,7 @@ def get_nba_box_score(team_name, requests_timeout):
             "content": f"""<div style="max-width: 100%; overflow-x: auto;">
                     {game_headline}
                     {quarter_table}
-                    <div style="display: flex; gap: 24px; flex-wrap: nowrap; overflow-x: auto;">
+                    <div style="display: flex; flex-wrap: wrap; overflow-x: auto; gap: 8px;">
                         <div style="flex: 0 0 auto;">{away_table}</div>
                         <div style="flex: 0 0 auto;">{home_table}</div>
                     </div>
@@ -478,17 +482,20 @@ def build_nhl_player_stats_table(team_name, team_stats):
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">TOI</th>
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">G</th>
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">A</th>
-            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Shots</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">S</th>
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">+/-</th>
         </tr>"""
 
     # Add forwards and defensemen
     for player in team_stats["forwards"] + team_stats["defense"]:
         if player["toi"] > "00:00":  # Only show players who played
+            toi = player["toi"].lstrip("0")
+            if toi.startswith(":"):
+                toi = "0" + toi
             table += f"""
                 <tr style="border-bottom: 1px solid #dee2e6;">
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{player["name"]["default"]}</td>
-                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["toi"]}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{toi}</td>
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["goals"]}</td>
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["assists"]}</td>
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["sog"]}</td>
@@ -502,11 +509,14 @@ def build_nhl_player_stats_table(team_name, team_stats):
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">TOI</th>
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">GA</th>
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">SV</th>
-            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">SV%</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">%</th>
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;"></th>
         </tr>"""
     for goalie in team_stats["goalies"]:
         if goalie["toi"] > "00:00":  # Only show goalies who played
+            toi = goalie["toi"].lstrip("0")
+            if toi.startswith(":"):
+                toi = "0" + toi
             saves = int(goalie["saveShotsAgainst"].split("/")[1]) - int(
                 goalie["saveShotsAgainst"].split("/")[0]
             )
@@ -518,7 +528,7 @@ def build_nhl_player_stats_table(team_name, team_stats):
             table += f"""
                 <tr style="border-bottom: 1px solid #dee2e6;">
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{goalie["name"]["default"]}</td>
-                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{goalie["toi"]}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{toi}</td>
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{goalie["goalsAgainst"]}</td>
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{saves}</td>
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{save_pct}</td>
@@ -609,7 +619,7 @@ def get_nhl_scoreboard(nhl_teams, requests_timeout):
                         "teams": [home_team, away_team],
                         "content": f"""<div style="max-width: 100%; overflow-x: auto;">
                         {headline}
-                        <div style="display: flex; gap: 24px; flex-wrap: nowrap; overflow-x: auto;">
+                        <div style="display: flex; flex-wrap: wrap; overflow-x: auto; gap: 8px;">
                             <div style="flex: 0 0 auto;">{away_table}</div>
                             <div style="flex: 0 0 auto;">{home_table}</div>
                         </div>
