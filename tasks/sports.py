@@ -121,7 +121,7 @@ def get_todays_nhl_game(team_place_name, requests_timeout):
 
     TODO: Clean and simpify. No need to use Pandas.
 
-    ARGUMENTS:
+    ARGUMENTS
     team_place_name (str): the team's official named place, like Buffalo, Minnesota. For Montréal use the accented e. For New York, use team_place_name of Islanders or Rangers
     requests_timeout (int): Number of seconds to wait before giving up on an HTTP request
 
@@ -382,11 +382,11 @@ def build_nba_game_player_stats_table(team_stats):
 def get_nba_box_score(team_name, requests_timeout):
     """Get box score for a team's most recent completed game within last 24 hours.
 
-    ARGUMENTS:
+    ARGUMENTS
     team_name (str): NBA team such as "Celtics" or "Lakers"
     requests_timeout (int): Number of seconds to wait before giving up on HTTP request
 
-    RETURNS:
+    RETURNS
     Dictionary with "teams" as list and "content" as HTML string with formatted box score tables, or None if no recent completed game
     """
     try:
@@ -428,6 +428,15 @@ def get_nba_box_score(team_name, requests_timeout):
 
 
 def get_nba_scoreboard(nba_teams, requests_timeout):
+    """Get all box scores for the teams in nba_teams.
+
+    ARGUMENTS
+    nba_teams (list): List of NBA team names such as "Celtics" or "Lakers"
+    requests_timeout (int): Number of seconds to wait before giving up on HTTP request
+
+    RETURNS
+    List of HTML strings containing formatted box scores, or empty list if no recent games
+    """
     scoreboard = [
         get_nba_box_score(nba_team, requests_timeout) for nba_team in nba_teams
     ]
@@ -452,6 +461,16 @@ def get_nba_scoreboard(nba_teams, requests_timeout):
 
 
 def build_nhl_player_stats_table(team_name, team_stats):
+    """Create a table of player statistics from one team in the recent game.
+
+    ARGUMENTS
+    team_name (str): Name of the NHL team
+    team_stats (dict): Dictionary of team stats from NHL API
+
+    RETURNS
+    HTML string with table of player stats
+    """
+    # Create table structure and headers
     table = f"""<h5 style="font-size: 0.8rem; margin: 8px 0;">{team_name}</h5>
         <table style="{SCOREBOARD_TABLE_FONT_FAMILY}; {SCOREBOARD_TABLE_STYLE}; width: auto;">
         <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
@@ -462,6 +481,7 @@ def build_nhl_player_stats_table(team_name, team_stats):
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Shots</th>
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">+/-</th>
         </tr>"""
+
     # Add forwards and defensemen
     for player in team_stats["forwards"] + team_stats["defense"]:
         if player["toi"] > "00:00":  # Only show players who played
@@ -485,7 +505,6 @@ def build_nhl_player_stats_table(team_name, team_stats):
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">SV%</th>
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;"></th>
         </tr>"""
-
     for goalie in team_stats["goalies"]:
         if goalie["toi"] > "00:00":  # Only show goalies who played
             saves = int(goalie["saveShotsAgainst"].split("/")[1]) - int(
