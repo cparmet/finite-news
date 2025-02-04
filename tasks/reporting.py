@@ -324,7 +324,19 @@ def research_source(source, requests_timeout):
             return get_calendar_events(source, requests_timeout)
         if source["type"] == "static":
             if parse_frequency_config(source.get("frequency", None)):
-                return [source.get("static_message", None)]
+                static_message = source.get("static_message", None)
+                if static_message:
+                    # Throw in the date if requested, like in an img's alt text.
+                    # Because with content like an img that always has the same src url,
+                    # e.g. NOAA Aurora forecasts, the <img> content is the same every day.
+                    # When we dedup today's content by comparing to the cached version of yesterday,
+                    # the <img> content would get dropped from today's issue.
+                    # So, vary the alt text each day.
+                    # publication_config.yml can have {{DATE}} in the "static_message" key
+                    static_message = static_message.replace(
+                        "{{DATE}}", date.today().strftime("%m/%d/%Y")
+                    )
+                return [static_message]
             else:
                 return []
         if source["type"] == "mbta_alerts":
