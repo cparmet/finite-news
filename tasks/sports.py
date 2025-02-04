@@ -462,7 +462,6 @@ def build_nhl_player_stats_table(team_name, team_stats):
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">Shots</th>
             <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">+/-</th>
         </tr>"""
-    print(table)
     # Add forwards and defensemen
     for player in team_stats["forwards"] + team_stats["defense"]:
         if player["toi"] > "00:00":  # Only show players who played
@@ -474,6 +473,38 @@ def build_nhl_player_stats_table(team_name, team_stats):
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["assists"]}</td>
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["sog"]}</td>
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{player["plusMinus"]}</td>
+                </tr>"""
+
+    # Add goalie stats
+    table += f"""
+        <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6; border-top: 2px solid #dee2e6;">
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}">Goalie</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">TOI</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">GA</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">SV</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;">SV%</th>
+            <th style="{SCOREBOARD_HEADER_CELL_STYLE}; text-align: right;"></th>
+        </tr>"""
+
+    for goalie in team_stats["goalies"]:
+        if goalie["toi"] > "00:00":  # Only show goalies who played
+            saves = int(goalie["saveShotsAgainst"].split("/")[1]) - int(
+                goalie["saveShotsAgainst"].split("/")[0]
+            )
+            save_pct = round(
+                int(goalie["saveShotsAgainst"].split("/")[0])
+                / int(goalie["saveShotsAgainst"].split("/")[1]),
+                3,
+            )
+            # save_pct = f".{int(saves/int(goalie["saveShotsAgainst"].split("/")[1])*1000):03d}" if int(goalie["saveShotsAgainst"].split("/")[1]) > 0 else ".000"
+            table += f"""
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{goalie["name"]["default"]}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{goalie["toi"]}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{goalie["goalsAgainst"]}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{saves}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;">{save_pct}</td>
+                    <td style="{SCOREBOARD_DATA_CELL_STYLE}; text-align: right;"></td>
                 </tr>"""
     return table + "</table>"
 
@@ -488,6 +519,8 @@ def get_nhl_scoreboard(nhl_teams, requests_timeout):
     RETURNS
     List of HTML strings containing formatted box scores, or empty list if no recent games
     """
+    if not nhl_teams:
+        return []
     try:
         # Get today's schedule
         url = "https://api-web.nhle.com/v1/schedule/" + date.today().strftime(
