@@ -65,6 +65,7 @@ sports: # Optional section and subsections, get yesterday's scores and heads-up 
     # hide_nba_scoreboard: True # Add this to only get heads-up on tonight's games in the headlines but not yesterday's box scores for those teams
     nhl_teams:
         - Buffalo, Islanders, Minnesota, Montréal # Use the place name, except for NY teams use the Mascot
+    # hide_nhl_scoreboard: True # As with hide_nba_scoreboard
 
 # Configure the forecast, or delete section to omit
 forecast:
