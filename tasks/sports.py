@@ -602,8 +602,10 @@ def get_nhl_scoreboard(nhl_teams, requests_timeout):
                 # Create headline
                 if home_score > away_score:
                     headline = f"""<h4>🏒 {home_team} beat {away_team} {home_score}-{away_score}</h4>"""
-                else:
-                    headline = f"""<h4>🏒 {away_team} beat {home_team} {away_score}-{home_score}</h4>"""
+                elif home_score < away_score:
+                    headline = f"""<h4>🏒 {home_team} lost to {away_team} {home_score}-{away_score}</h4>"""
+                else:  # tie
+                    headline = f"""<h4>🏒 {home_team} tied {away_team} {home_score}-{away_score}</h4>"""
 
                 away_table = build_nhl_player_stats_table(
                     away_team, box["playerByGameStats"]["awayTeam"]
