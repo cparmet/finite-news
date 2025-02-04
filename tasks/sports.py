@@ -540,7 +540,7 @@ def get_nhl_scoreboard(nhl_teams, requests_timeout):
     if not nhl_teams:
         return []
     try:
-        # Get today and yesterday's schedules
+        ## Get schedules for today and yesterday's games
         today = date.today()
         yesterday = today - timedelta(days=1)
         schedule = []
@@ -561,17 +561,7 @@ def get_nhl_scoreboard(nhl_teams, requests_timeout):
         ][0]["games"]
         schedule.extend(schedule_today)
 
-        # # Get today's schedule
-        # url = "https://api-web.nhle.com/v1/schedule/" + date.today().strftime(
-        #     "%Y-%m-%d"
-        # )
-        # schedule = (
-        #     requests.get(url, timeout=requests_timeout)
-        #     .json()
-        #     ["gameWeek"][0]["games"]
-        # )
-
-        # Filter today and yesterday's schedule for games that started in last 24 hours
+        ## Filter today and yesterday's schedule for games that started in last 24 hours
         now_utc = datetime.now(pytz.UTC)
         recent_games = []
         for game in schedule:
@@ -582,7 +572,7 @@ def get_nhl_scoreboard(nhl_teams, requests_timeout):
                 if now_utc - game_time < timedelta(hours=24):
                     recent_games.append(game)
 
-        # Build box scores for our teams' games
+        ## Build box scores for our teams' games
         scoreboard = []
         for game in recent_games:
             home_team = game["homeTeam"]["placeName"]["default"]
@@ -627,7 +617,7 @@ def get_nhl_scoreboard(nhl_teams, requests_timeout):
                     }
                 )
 
-        # Dedupe box scores
+        ## Dedupe box scores
         if scoreboard:
             scoreboard_content_deduped = []
             teams_already_reported = []
