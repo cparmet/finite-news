@@ -276,3 +276,12 @@ image_sources:
         url: url
         img_tag: true
         img_tag_number: 2  # Which <img> tag on the page? 1 is first 
+    # We add an image to the issue from an img tag whose src url is always the same
+    # For example some sources upload a new .jpg each day to the same URL
+    -
+      name: name
+      category: category
+      type: static
+      frequency:
+        frequency: daily
+      static_message: '<h4>Section title</h4><img src="https://url/to.jpg" alt="Content for {{DATE}}">' # {{DATE}} is filled in dynamically by the code so that the Alt tag varies every day. Otherwise, today's content for this item (<h4> + <img>) would be  exactly the same every day. Then when we cache it, tomorrow's issue will pull it and de-dup against the cache, which leads it to get dropped. 
