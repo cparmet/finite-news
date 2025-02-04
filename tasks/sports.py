@@ -515,7 +515,6 @@ def build_nhl_player_stats_table(team_name, team_stats):
                 / int(goalie["saveShotsAgainst"].split("/")[1]),
                 3,
             )
-            # save_pct = f".{int(saves/int(goalie["saveShotsAgainst"].split("/")[1])*1000):03d}" if int(goalie["saveShotsAgainst"].split("/")[1]) > 0 else ".000"
             table += f"""
                 <tr style="border-bottom: 1px solid #dee2e6;">
                     <td style="{SCOREBOARD_DATA_CELL_STYLE}; font-weight: 500;">{goalie["name"]["default"]}</td>
