@@ -26,7 +26,8 @@ def get_nws_forecast(nws_config):
     Dict with attributes of the forecast retrieved, or None if there was a problem.
     """
 
-    MAX_ATTEMPTS = 10
+    MAX_ATTEMPTS = nws_config.get("max_attempts", 10)
+    SNOOZE_BAR = nws_config.get("api_snooze_bar", 30)
     try:
         attempts = 1
         while attempts < MAX_ATTEMPTS:
@@ -37,9 +38,9 @@ def get_nws_forecast(nws_config):
             else:
                 attempts += 1
                 logging.info(
-                    f"Weather request {r.status_code}. Wait {nws_config['api_snooze_bar']} seconds and retry, take # {attempts} ..."
+                    f"Weather request {r.status_code}. Wait {SNOOZE_BAR} seconds and retry, take # {attempts} ..."
                 )
-                sleep(nws_config["api_snooze_bar"])
+                sleep(SNOOZE_BAR)
 
         # Get the next daytime forecast
         # Traverse the list of forecast periods to find the first that isn't Overnight, ~Tuesday Night, Tonight, Evening
