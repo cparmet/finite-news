@@ -319,7 +319,8 @@ def scrape_text_with_selenium(source, driver=None):
 
         elements = [element.text for element in driver.find_elements(criteria, value)]
 
-        if "item_number" in source:
+        # Select only the single element the user wants, if requested
+        if elements and "item_number" in source:
             # Converts 1-based index to 0-based Python index
             elements = [elements[source["item_number"] - 1]]
 
