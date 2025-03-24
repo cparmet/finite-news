@@ -242,7 +242,11 @@ def day_name_to_number(day_name):
     )
 
 
-def parse_frequency_config(frequency_config):
+def parse_frequency_config(
+    frequency_config,
+    empty_config_returns_true=False,
+    context=None,
+):
     """Determine if today is the day to deliver a scheduled section of the paper.
 
     NOTE
@@ -251,13 +255,26 @@ def parse_frequency_config(frequency_config):
 
     ARGUMENTS
     frequency_config (dict): Parameters for a cycle
+    empty_config_returns_true (bool): If True, a missing frequency_config (None) will be assumed to indicate True
+    context (dict or str): A source name or other context to show the scenario in which the function was called, used for error reporting when empty_config_returns_true=False
 
     RETURNS
     Boolean value when True means today is on the schedule to deliver the section.
     """
 
     if not frequency_config:
-        logging.warning("Missing frequency config, assumed to be False")
+        # For general sources like headlines, a frequency_config is optional.
+        # If it's missing, the content should still be included in the issue.
+        if empty_config_returns_true:
+            return True
+
+        # For specialised sources, we rely on frequency_config being populated.
+        # This is the case for config around when to deliver the whole issue (like for supplements), and content like stocks and events.
+        # In these cases, absence of a frequency_config is an error.
+        # Raise the error in admin issue, and return False to _exclude_ this issue/source from delivery.
+        logging.warning(
+            f"parse_frequency_config() received a missing frequency_config where one was expected ('empty_config_returns_true==False'). The answer is imputed to be _False_, so this issue/source will not be delivered. Context for the function call: {context}"
+        )
         return False
 
     frequency = frequency_config.get("frequency", None)  # The cadence label
@@ -340,7 +357,12 @@ def load_events_config(publication_events_sources, subscriber_sources):
         frequency_match = parse_frequency_config(
             subscriber_sources.get("events", {}).get(
                 "frequency", {"frequency": "daily"}
-            )
+            ),
+            # We expect this kind of source to include a frequency_config
+            # So missing frequency_config is an error.
+            # But that error should never occur since line above imputes "daily"
+            empty_config_returns_true=False,
+            context=f"load_events_config(), {subscriber_events_sources}",
         )
         if (
             frequency_match
@@ -372,7 +394,13 @@ def load_stocks_config(subscriber_sources):
         stocks_config = subscriber_sources.get("stocks", None)
         if not stocks_config:
             return [], None
-        frequency_match = parse_frequency_config(stocks_config)
+        frequency_match = parse_frequency_config(
+            stocks_config,
+            # We expect this kind of source to include a frequency_config
+            # So missing frequency_config is an error.
+            empty_config_returns_true=False,
+            context=f"load_stocks_config(), {stocks_config}",
+        )
         frequency = stocks_config.get("frequency", None)
         ticker_sets = stocks_config.get("tickers", [])
         if len(ticker_sets) == 0 or not frequency_match:
@@ -408,7 +436,12 @@ def load_subscriber_config(subscriber_config_file_name, publication_config):
 
     # Check are we delivering this issue today?
     if not parse_frequency_config(
-        subscriber_config.get("issue_frequency", {"frequency": "daily"})
+        subscriber_config.get("issue_frequency", {"frequency": "daily"}),
+        # We expect this kind of source to include a frequency_config
+        # So missing frequency_config is an error.
+        # But this error should never occur since line above imputes "daily"
+        empty_config_returns_true=False,
+        context=f"load_subscriber_config(), {subscriber_config['email']}",
     ):
         logging.info(
             f"{subscriber_config['email']}: No issue today, not in issue_frequency."
@@ -466,7 +499,13 @@ def load_subscriber_config(subscriber_config_file_name, publication_config):
             "direction_id": mbta_source.get("direction_id", None),
         }
         for mbta_source in subscriber_config.get("sources", {}).get("mbta", [])
-        if parse_frequency_config(mbta_source)
+        if parse_frequency_config(
+            mbta_source,
+            # We expect this kind of source to include a frequency_config
+            # So missing frequency_config is an error.
+            empty_config_returns_true=False,
+            context=f"MBTA API: Alerts, {mbta_source}",
+        )
     ]
     issue["image_sources"] = filter_sources(
         issue["image_sources"],
