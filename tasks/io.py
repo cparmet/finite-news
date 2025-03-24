@@ -505,12 +505,28 @@ def load_subscriber_configs(publication_config):
     List of issue_configs, one for each subscriber we need to generate an issue for
     """
 
+    # Load each config
     subscriber_configs = [
         load_subscriber_config(subscriber_config_file_name, publication_config)
         for subscriber_config_file_name in get_subscriber_list()
     ]
+
     # Drop Nones, which occur if today is not in the issue_frequency for that subscriber
     subscriber_configs = [c for c in subscriber_configs if c is not None]
+
+    # If an environment variable tell us limit delivery to one subscriber,
+    # such as for testing a new deployment on GCP,
+    # filter the subscriber list down to that subscriber.
+    if "ONLY_EMAIL_SUBSCRIBER" in os.environ:
+        subscriber_configs = [
+            subscriber_config
+            for subscriber_config in subscriber_configs
+            if subscriber_config["subscriber_email"]
+            == os.environ["ONLY_EMAIL_SUBSCRIBER"]
+        ]
+        print(
+            f"Limiting delivery to one subscriber '{os.environ['ONLY_EMAIL_SUBSCRIBER']}' due to environment variable ONLY_EMAIL_SUBSCRIBER"
+        )
 
     # Sort subscribers so the "admins" go last.
     # Allows the admin email issue(s) to include logging warnings from the non-admin issues.
