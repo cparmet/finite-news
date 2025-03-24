@@ -237,16 +237,17 @@ def load_selenium_driver():
     os_name = platform.system()
 
     if os_name == "Darwin":
-        # For local Mac development
+        # For local development on Mac, we use local chromedriver, which expects Chrome executable is also installed
         # To download appropriate chromedriver, see https://googlechromelabs.github.io/chrome-for-testing/
-        # TODO: This now could just be a system install too
+        # TODO: This now could just be a system install too instead of assets/
         service = webdriver.ChromeService(
             executable_path="assets/chromedriver_mac_arm64"
         )
     elif os_name == "Linux":
-        # For Google Cloud Run (Docker container), use the system-installed chromedriver
-        # To change the chromedriver for a different image, update Dockerfile
-        service = webdriver.ChromeService(executable_path="/usr/local/bin/chromedriver")
+        # For GCP deployment, we use Chromium instead of Chrome
+        # and use the paths from the Docker install of Chromium and chromium-driver from Ubuntu repos
+        options.binary_location = "/usr/bin/chromium"
+        service = webdriver.ChromeService(executable_path="/usr/bin/chromedriver")
     else:
         raise AttributeError(
             f"Unexpected platform in get_screenshots. No chromedriver handled for {os_name}"
