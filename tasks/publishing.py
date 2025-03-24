@@ -213,13 +213,25 @@ def create_issue(issue_config, log_stream, smart_dedup_model=None, dev_mode=Fals
 
     # Other images
     # A. images that we need to attach to the email
-    images = stock_plots + get_screenshots(
+    # Reminders:
+    #   - We append screenshots after stock_plots due to expectations in format_issue()
+    #   - stock_plots are a list of base64 images. screenshots are a dict with keys "image" and "heading"
+
+    screenshots = get_screenshots(
         [
             source
             for source in issue_config["image_sources"]
             if source["type"] == "screenshot"
-        ]
+        ],
+        dev_mode,
     )
+    screenshot_images = [
+        screenshot["image"] for screenshot in screenshots if screenshot
+    ]
+    screenshot_headings = [
+        screenshot["heading"] for screenshot in screenshots if screenshot
+    ]
+    images = stock_plots + screenshot_images
 
     # B. image_urls that we don't need to attach, the <img> html is sufficient
     image_urls = [
@@ -259,6 +271,7 @@ def create_issue(issue_config, log_stream, smart_dedup_model=None, dev_mode=Fals
             "events_html": events_html,
             "stock_plots": stock_plots,
             "images": images,
+            "screenshot_headings": screenshot_headings,
             "image_urls": image_urls,
         },
         issue_config=issue_config,
