@@ -9,3 +9,5 @@ dev.ipynb
 .DS_Store
 issues_for_*
 stocks_*
+screenshots_*
+assets/chromedriver*

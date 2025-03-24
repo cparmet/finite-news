@@ -50,7 +50,16 @@ Finite News is Python code that's set up as a Google Cloud Run job. It could be 
     - Store each secret in two places:
         1. In Google Cloud Secrets Manager. Once deployed as a Cloud Run Job, we'll expose these secrets as environment variables.
         2. As local environment variables on your computer (e.g. in .zshrc, `export SECRET_NAME="secret_value"`)
-7. (Optional) Download a free language model to enable the Smart Deduper. 
+7. (Optional) Set up Selenium.
+    - Enabling Selenium allows your `publication_config.yml` to include sources with more scraping options, including `type: screenshot` sources and text scrapers with the attribute `use_selenium: True`. You can [read more](https://www.selenium.dev) about Selenium.
+    - For deployment to Google Cloud, Selenium setup is all handled by the Dockerfile. 
+    - For local development using sources with Selenium, you need to:
+        - install a chromedriver executable to `assets/`
+            -  Get the version for your OS here: https://googlechromelabs.github.io/chrome-for-testing/
+            - If necessary, update the filename `assets/chromedriver_mac_arm64` in `load_selenium_driver()` in `reporting.py`
+        - make sure your local environment has a Chrome browser executable.
+        - if necessary, update `load_selenium_driver()` to handle your local setup. This could involve pointing Selenium to a local chromium executable instead of assuming the system has Chrome, for example
+8. (Optional) Download a free language model to enable the Smart Deduper. 
     - The Smart Deduper removes headlines that are similar to others in the same issue. It uses a language model to measure the similarity (in meaning) of headlines. 
     - I like to use the model [`paraphrase-multilingual-MiniLM-L12-v2`](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2). It works in multiple languages.
         - But you can use another model supported by https://huggingface.co/sentence-transformers
@@ -64,7 +73,7 @@ Finite News is Python code that's set up as a Google Cloud Run job. It could be 
         3. Move that `{MODEL}` subdirectory into the root Finite News project folder, under `models/smart-deduper/{MODEL}`
     - In `publication_config.yml` specify the path to the model in the Finite News project folder, **specifically the `snapshots/{HASH}`** folder inside it. 
         - Example: `path_to_model: "models/smart-deduper/models--sentence-transformers--paraphrase-multilingual-MiniLM-L12-v2/snapshots/8d6b950845285729817bf8e1af1861502c2fed0c"`
-8. (Optional) Create an API account on [openai.com](www.openai.com), to use GPT to remove low-quality headlines (clickbait etc).
+9. (Optional) Create an API account on [openai.com](www.openai.com), to use GPT to remove low-quality headlines (clickbait etc).
     - 💁‍♂️ Tip: I find that using manual rules, configuring `substance_rules.yml` in your newspaper files, does more to improve the quality of headlines than the GPT feature. It takes trial and error to find the keywords to exclude the junk. 
     - Note: Using the OpenAI API will incur charges to your OpenAI account.
     - If you do this, add the secret `OPENAI_API_KEY` to the secrets you created above.
@@ -85,6 +94,8 @@ Finite News is Python code that's set up as a Google Cloud Run job. It could be 
         - You can run the job! Either
             - Execute the new job as a one-off using the [Google Cloud Console](https://console.cloud.google.com/run/jobs) or gcloud command line.
             - Or create a [Scheduler Trigger](https://console.cloud.google.com/run/jobs) to run the job on a schedule, such as once a day.
+    - (Optional) To test a new deployment, you can set the environment variable in the Google Cloud Run Job `ONLY_EMAIL_SUBSCRIBER: <email address>`. Then when you run the job, it will only send an email to that email address, such as a test or admin account.
+        - When the environment variable is missing, the job will send an email to all subscribers.
 ### Changing your newspaper
 * **To updating the configuration** (such as adding a new subscriber config file or changing the `publication_config.yml`): Upload the changed/new files to your existing Google Cloud Storage bucket.
 * **To update the code:**
@@ -100,6 +111,7 @@ Finite News is Python code that's set up as a Google Cloud Run job. It could be 
             - The job should automatically point to the new version of the container.
         4. You may want to delete the old version of the container in the Artifact Registry, if you don't need it. 
             - Cuz they charge you keeping containers up there, like a storage unit.
+        5. See previous section for tips on testing a new deployment.
   
 ### Designing your newspaper
 🚨🚨 Comply with the Terms of Service of your sources and APIs.  

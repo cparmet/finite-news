@@ -1,5 +1,6 @@
 """🪥 Editing: Functions to clean up reporting results"""
 
+from datetime import date
 import emoji
 from google.cloud import storage
 import logging
@@ -42,6 +43,26 @@ def heal_inner_n(s):
     return s
 
 
+def populate_variables(item):
+    """
+    Fill in any dynamic values presented in the source config's HTML
+
+    See also the config option for alerts 'force_unique_daily_alert'
+    """
+
+    # Populate a dynamic date in the items if requested, to override cache de-duping
+    # With some content, the HTML content could be the same each day, and it'd get dropped
+    # because the same content existed in the last issue.
+    # {{DATE}} lets us ensure the HTML is unique each issue.
+    # Example: NOAA Aurora forecasts, the html "<img ...>" content is the same every day.
+    # But image data we'll render from the url changes each day.
+    # When we dedup today's content by comparing to the cached version of yesterday,
+    # the <img> content would get dropped from today's issue.
+    # So, we vary the alt text each day to make it unique:
+    # publication_config.yml can have {{DATE}} in the "static_message" key
+    return item.replace("{{DATE}}", date.today().strftime("%m/%d/%Y"))
+
+
 def postprocess_scraped_content(items, source):
     # Apply certain text cleaning that depends on source config
     # TODO: keep items associated with their source config longer
@@ -50,6 +71,9 @@ def postprocess_scraped_content(items, source):
     if not items:
         return items
     try:
+        #  Populate any dynamic variables
+        items = [populate_variables(item) for item in items]
+
         # Check if certain phrases are present/absent
         if "must_contain" in source:
             # When it's a list, it's an OR

@@ -58,7 +58,6 @@ alerts_sources:
             - audi
     # Alert subscriber if a USED electric car is added to the US Government's list of vehicles eligible for tax incentives. The URL is current as of Feb 2024
     # In this example, we only want alerts for plug-in hybrids (atvType), which will be formatted like "Plug-in Hybrid Cadillac ELR". But no Bentleys :D
-
     -
         name: "fueleconomy.gov: EV incentives (pre-owned cars)"
         type: alert_new
@@ -76,6 +75,21 @@ alerts_sources:
             - plug-in
         cant_contain:
             - bentley
+        exclude_from_0_results_warning: True # If the alert conditions above are uncommonly met, don't warn the admin every time they fail
+
+    # Advanced alert using Selenium for scraping
+    -
+      name: name
+      category: category
+      type: alert_new
+      method: scrape
+      url: url
+      use_selenium: True
+      tag_class: class_name # Alternative ways to scrape are listed in scrape_text_with_selenium()
+      allowed_values: ["Low", "Medium", "High"] # Optional, not just for Selenium scrapers. Validates that the scraped text only has one of these values. Else, add a warning to the admin's issue. It may mean that the webpage has changed and element 3 is no longer what it used to be. This is like must_contain except raises that warning
+      must_contain: "High" # Optional, only fire the alert if the scraped text contains this text
+      alert_preface: "Alert!" 
+      force_unique_daily_alert: True # Also adds today's date to the alt_text of the alert HTML. That way the alert will be present every issue (day) the criteria (must_contain) is met. Otherwise if the alert HTML is the same every day, it would get de-duped if the same alert was in yesterday's issue. By varying the alt_text each day, it will be unique and not de-duped.
 
 # A list of sources to get news headlines from
 # Example of supported methods below
@@ -285,3 +299,17 @@ image_sources:
       frequency:
         frequency: daily
       static_message: '<h4>Section title</h4><img src="https://url/to.jpg" alt="Content for {{DATE}}">' # {{DATE}} is filled in dynamically by the code so that the Alt tag varies every day. Otherwise, today's content for this item (<h4> + <img>) would be  exactly the same every day. Then when we cache it, tomorrow's issue will pull it and de-dup against the cache, which leads it to get dropped. 
+
+    # Take a screenshot of an element on a webpage, using Selenium
+    - 
+      name: name
+      category: category
+      type: screenshot
+      url: url
+      tag_class: class_name # see get_screenshots() for options on identifying the element to screenshot
+      element_number: 3 # Which of the qualifying elements on the page to screenshot
+      header: "header text/ html" # What will go in the h4 above this screenshot
+      delay_secs_for_loading: 5 # For some elements that are generated dynamically, wait for it to load or we'll take a partial screenshot
+      frequency: # Optional, only take the screenshot on Tuesdays
+        frequency: weekly
+        day_of_week: Tuesday

@@ -10,13 +10,12 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import NoSuchDriverException
 from time import sleep
 import base64
 from io import BytesIO
 from PIL import Image
 
-from tasks.editing import postprocess_scraped_content
+from tasks.editing import populate_variables, postprocess_scraped_content
 from tasks.events import get_calendar_events
 from tasks.io import get_fn_secret, parse_frequency_config
 
@@ -228,32 +227,40 @@ def scrape_source(source, requests_timeout, retry=True):
 
 
 def load_selenium_driver():
-    ## Set up Selenium
+    ## Configure Selenium
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
-    # Force the location to the path of the executable
+    # Find the correct location of the chromedriver, depending if we're in local dev mode or deployed to GCP
     os_name = platform.system()
-    # To download appropriate chromedriver, see https://googlechromelabs.github.io/chrome-for-testing/
+
     if os_name == "Darwin":
-        path_to_chromedriver = "assets/chromedriver_mac_arm64"
+        # For local development on Mac, we use local chromedriver, which expects Chrome executable is also installed
+        # To download appropriate chromedriver, see https://googlechromelabs.github.io/chrome-for-testing/
+        # TODO: This now could just be a system install too instead of assets/
+        service = webdriver.ChromeService(
+            executable_path="assets/chromedriver_mac_arm64"
+        )
     elif os_name == "Linux":
-        path_to_chromedriver = "assets/chromedriver_linux64"
+        # For GCP deployment, we use Chromium instead of Chrome
+        # and use the paths from the Docker install of Chromium and chromium-driver from Ubuntu repos
+        options.binary_location = "/usr/bin/chromium"
+        service = webdriver.ChromeService(executable_path="/usr/bin/chromedriver")
     else:
         raise AttributeError(
-            f"Unexpected platform in get_screenshots. No chromedriver asset for {os_name}. Download at https://googlechromelabs.github.io/chrome-for-testing/ and add new case to populate path_to_chromedriver?"
+            f"Unexpected platform in get_screenshots. No chromedriver handled for {os_name}"
         )
     try:
-        service = webdriver.ChromeService(executable_path=path_to_chromedriver)
-    except NoSuchDriverException:
+        driver = webdriver.Chrome(service=service, options=options)
+        driver.maximize_window()
+        return driver
+    except Exception as e:
         logging.warning(
-            f"Selenium could not find a ChromeDriver executable at the path {path_to_chromedriver}. os_name = {os_name}"
+            f"Selenium could not initialize Chrome driver: {str(type(e))}, {str(e)}. os_name = {os_name}"
         )
-        return [], []
-
-    options = Options()
-    options.add_argument("headless")
-    driver = webdriver.Chrome(service=service, options=options)
-    driver.maximize_window()
-    return driver
+        return None
 
 
 def scrape_text_with_selenium(source, driver=None):
@@ -284,10 +291,12 @@ def scrape_text_with_selenium(source, driver=None):
             quit_after_scrape = False
 
         driver.get(source["url"])
-        # These are one at a time right now, not composable like with our Beautiful Soup implementation
+
+        # Find the requested element
+        # You can only use one of these criteria
         if "tag" in source:
             criteria = By.NAME
-            value = source["tag_name"]
+            value = source["tag"]
         elif "tag_class" in source:
             criteria = By.CLASS_NAME
             value = source["tag_class"]
@@ -310,7 +319,8 @@ def scrape_text_with_selenium(source, driver=None):
 
         elements = [element.text for element in driver.find_elements(criteria, value)]
 
-        if "item_number" in source:
+        # Select only the single element the user wants, if requested
+        if elements and "item_number" in source:
             # Converts 1-based index to 0-based Python index
             elements = [elements[source["item_number"] - 1]]
 
@@ -356,18 +366,8 @@ def research_source(source, requests_timeout):
         if source["type"] == "static":
             if parse_frequency_config(source.get("frequency", None)):
                 static_message = source.get("static_message", None)
-                if static_message:
-                    # Throw in the date if requested, like in an img's alt text.
-                    # Because with content like an img that always has the same src url,
-                    # e.g. NOAA Aurora forecasts, the <img> content is the same every day.
-                    # When we dedup today's content by comparing to the cached version of yesterday,
-                    # the <img> content would get dropped from today's issue.
-                    # So, vary the alt text each day.
-                    # publication_config.yml can have {{DATE}} in the "static_message" key
-                    static_message = static_message.replace(
-                        "{{DATE}}", date.today().strftime("%m/%d/%Y")
-                    )
-                return [static_message]
+                # Populate any dynamic variables, if requested in the source e.g. to override cache de-duping
+                return [populate_variables(static_message)]
             else:
                 return []
         if source["type"] == "mbta_alerts":
@@ -486,11 +486,27 @@ def research_source(source, requests_timeout):
             # Add preface, if requested
             return [f"{source.get('preface','')}{item}" for item in items]
         elif source["type"] == "alert_new":
-            # Wrap the alert in a URL. Add preface, if requested (add separately from regular 'preface', to isolate item)
-            return [
-                f"""{source.get('alert_preface', '')} <a href="{source['url']}" target="_blank">{item}</a>"""
+            # Wrap the alert in a URL.
+            # If config would like us to force unique HTML content for each day, update alt text in the URL
+            # This is for alerts we want to fire anytime the criteria (e.g. must_contain) is met, even if the exact same alert already fired yesterday
+            # e.g. HTML for the alter would be the same at each firing
+            # That would cause cache de-duper to remove the alert because it was in yesterday's issue.
+            # This option adds a unique daily alt text to the alert_preface to avoid deduping
+            if source.get("force_unique_daily_alert", False):
+                today_date = date.today().strftime("%m/%d/%Y")
+                alt_text = f'alt=" Result for {today_date}"'
+            else:
+                alt_text = ""
+            # Add 'alert_preface', if requested.
+            # NOTE: We use a separate config key for alert_preface vs the normal key 'preface', since they present the scraped "item" text in different ways.
+            items = [
+                f"""{source.get('alert_preface', '')} <a href="{source['url']}" target="_blank"{alt_text}>{item}</a>"""
                 for item in items
             ]
+            # Populate any dynamic variables
+            items = [populate_variables(item) for item in items]
+
+            return items
         else:
             logging.warning(f"Unknown type of source {source['type']}: {str(source)}")
             return []
@@ -600,14 +616,48 @@ def get_screenshots(sources, dev_mode=False):
 
         ## Get the screenshot for each source
         for i, source in enumerate(sources):
+            # Validate source config
+            criteria = [
+                criterion
+                for criterion in source
+                if criterion in ["tag", "tag_class", "tag_id", "tag_xpath", "tag_css"]
+            ]
+            if len(criteria) > 1:
+                logging.warning(
+                    f"get_screenshots() received multiple scraping criteria. Only one will be used. {source}"
+                )
+
             ## Get the screenshot
             driver.get(source["url"])
-            elements = driver.find_elements(
-                By.CLASS_NAME, source["image_element_class"]
-            )
+
+            # Find the requested element
+            # You can only use one of these criteria
+            if "tag" in source:
+                criteria = By.NAME
+                value = source["tag"]
+            elif "tag_class" in source:
+                criteria = By.CLASS_NAME
+                value = source["tag_class"]
+            elif "tag_id" in source:
+                criteria = By.ID
+                value = source["tag_id"]
+            elif "tag_xpath" in source:
+                criteria = By.XPATH
+                value = source["tag_xpath"]
+            elif "tag_css" in source:
+                criteria = By.CSS_SELECTOR
+                value = source["tag_css"]
+            else:
+                logging.warning(
+                    f"get_screenshots() was given unhandled criteria from {source}. No results scraped."
+                )
+            elements = driver.find_elements(criteria, value)
+
             # For some dynamically generated images, scraping them too quickly leads to incompelte screenshots
             sleep(source.get("delay_secs_for_loading", 5))
-            chart_element = elements[source["image_element_number"]]
+            # Select the ith element
+            chart_element = elements[source["element_number"]]
+            # Take the screenshot
             screenshot_b64 = chart_element.screenshot_as_base64
             screenshots.append(
                 {"image": screenshot_b64, "heading": source.get("header", None)}
