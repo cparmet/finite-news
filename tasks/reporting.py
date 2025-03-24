@@ -291,10 +291,12 @@ def scrape_text_with_selenium(source, driver=None):
             quit_after_scrape = False
 
         driver.get(source["url"])
-        # These are one at a time right now, not composable like with our Beautiful Soup implementation
+
+        # Find the requested element
+        # You can only use one of these criteria
         if "tag" in source:
             criteria = By.NAME
-            value = source["tag_name"]
+            value = source["tag"]
         elif "tag_class" in source:
             criteria = By.CLASS_NAME
             value = source["tag_class"]
