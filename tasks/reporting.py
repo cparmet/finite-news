@@ -15,7 +15,7 @@ import base64
 from io import BytesIO
 from PIL import Image
 
-from tasks.editing import postprocess_scraped_content
+from tasks.editing import populate_variables, postprocess_scraped_content
 from tasks.events import get_calendar_events
 from tasks.io import get_fn_secret, parse_frequency_config
 
@@ -363,18 +363,8 @@ def research_source(source, requests_timeout):
         if source["type"] == "static":
             if parse_frequency_config(source.get("frequency", None)):
                 static_message = source.get("static_message", None)
-                if static_message:
-                    # Throw in the date if requested, like in an img's alt text.
-                    # Because with content like an img that always has the same src url,
-                    # e.g. NOAA Aurora forecasts, the <img> content is the same every day.
-                    # When we dedup today's content by comparing to the cached version of yesterday,
-                    # the <img> content would get dropped from today's issue.
-                    # So, vary the alt text each day.
-                    # publication_config.yml can have {{DATE}} in the "static_message" key
-                    static_message = static_message.replace(
-                        "{{DATE}}", date.today().strftime("%m/%d/%Y")
-                    )
-                return [static_message]
+                # Populate any dynamic variables, if requested in the source e.g. to override cache de-duping
+                return [populate_variables(static_message)]
             else:
                 return []
         if source["type"] == "mbta_alerts":
@@ -493,11 +483,27 @@ def research_source(source, requests_timeout):
             # Add preface, if requested
             return [f"{source.get('preface','')}{item}" for item in items]
         elif source["type"] == "alert_new":
-            # Wrap the alert in a URL. Add preface, if requested (add separately from regular 'preface', to isolate item)
-            return [
-                f"""{source.get('alert_preface', '')} <a href="{source['url']}" target="_blank">{item}</a>"""
+            # Wrap the alert in a URL.
+            # If config would like us to force unique HTML content for each day, update alt text in the URL
+            # This is for alerts we want to fire anytime the criteria (e.g. must_contain) is met, even if the exact same alert already fired yesterday
+            # e.g. HTML for the alter would be the same at each firing
+            # That would cause cache de-duper to remove the alert because it was in yesterday's issue.
+            # This option adds a unique daily alt text to the alert_preface to avoid deduping
+            if source.get("force_unique_daily_alert", False):
+                today_date = date.today().strftime("%m/%d/%Y")
+                alt_text = f'alt=" Result for {today_date}"'
+            else:
+                alt_text = ""
+            # Add 'alert_preface', if requested.
+            # NOTE: We use a separate config key for alert_preface vs the normal key 'preface', since they present the scraped "item" text in different ways.
+            items = [
+                f"""{source.get('alert_preface', '')} <a href="{source['url']}" target="_blank"{alt_text}>{item}</a>"""
                 for item in items
             ]
+            # Populate any dynamic variables
+            items = [populate_variables(item) for item in items]
+
+            return items
         else:
             logging.warning(f"Unknown type of source {source['type']}: {str(source)}")
             return []
