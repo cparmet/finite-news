@@ -360,16 +360,21 @@ def research_source(source, requests_timeout):
 
     """
     try:
+        if not parse_frequency_config(
+            source.get("frequency", None),
+            # For general purpose sources, a frequency_config is optional.
+            # So if it's missing, still include the source in reporting.
+            empty_config_returns_true=True,
+        ):
+            return []
+
         # Get specialized content
         if source["type"] == "events_calendar":
             return get_calendar_events(source, requests_timeout)
         if source["type"] == "static":
-            if parse_frequency_config(source.get("frequency", None)):
-                static_message = source.get("static_message", None)
-                # Populate any dynamic variables, if requested in the source e.g. to override cache de-duping
-                return [populate_variables(static_message)]
-            else:
-                return []
+            static_message = source.get("static_message", None)
+            # Populate any dynamic variables, if requested in the source e.g. to override cache de-duping
+            return [populate_variables(static_message)]
         if source["type"] == "mbta_alerts":
             if (
                 not source["route"]
@@ -616,6 +621,17 @@ def get_screenshots(sources, dev_mode=False):
 
         ## Get the screenshot for each source
         for i, source in enumerate(sources):
+            # Check if now is on schedule for this source.
+            # If not, do not try to take the screenshot.
+            if not parse_frequency_config(
+                source.get("frequency", None),
+                # For screenshots, a frequency_config is optional.
+                # So if it's missing, still include the source in reporting.
+                empty_config_returns_true=True,
+            ):
+                # TODO: Call parse_frequency_config() for all sources of all types once during loading, not separately for each type of source
+                continue
+
             # Validate source config
             criteria = [
                 criterion
