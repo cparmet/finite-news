@@ -23,7 +23,9 @@ editorial:
 # General parameters for calling the National Weather Service for forecasts
     enable_thoughts_of_the_day: True # Whether any issue should include a Thoughts of the Day section. This will sample a quote from subscriber's personalized list of 'thoughts_of_the_day' in their config and optionally the shared quotes in "thoughts_of_the_day.yml'
 nws:  
-    api_snooze_bar: 10 # seconds to wait before retrying NWS
+    timeout: 30 # max time to wait for a response from NWS API
+    api_snooze_bar: 10 # seconds to wait after a failure before retrying NWS api
+    max_attempts: 20 # max number of times to retry NWS api before giving up
 
 # Optional, set up sources to be in an alerts section
 # An alert_new style scrape copies a hyperlink that is newly added to a web page.

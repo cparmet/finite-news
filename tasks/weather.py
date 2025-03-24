@@ -32,7 +32,7 @@ def get_nws_forecast(nws_config):
         attempts = 1
         while attempts < MAX_ATTEMPTS:
             url = f"https://api.weather.gov/gridpoints/{nws_config['office']}/{nws_config['grid_x']},{nws_config['grid_y']}/forecast"
-            r = requests.get(url, timeout=5)
+            r = requests.get(url, timeout=nws_config.get("timeout", 10))
             if r.status_code == 200:
                 break
             else:
@@ -74,11 +74,11 @@ def get_nws_forecast(nws_config):
     except Exception as e:
         try:
             logging.warning(
-                f"Forecast error after {MAX_ATTEMPTS} attempts: {str(type(e))}, {str(e)}, {r}"
+                f"Forecast error after {attempts} attempts: {str(type(e))}, {str(e)}, {r}"
             )
         except UnboundLocalError:
             logging.warning(
-                f"Forecast error after {MAX_ATTEMPTS} attempts: {str(type(e))}, {str(e)}. requests.get() did not return a response r."
+                f"Forecast error after {attempts} attempts: {str(type(e))}, {str(e)}. requests.get() did not return a response r."
             )
         return None
 
