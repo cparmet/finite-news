@@ -616,14 +616,48 @@ def get_screenshots(sources, dev_mode=False):
 
         ## Get the screenshot for each source
         for i, source in enumerate(sources):
+            # Validate source config
+            criteria = [
+                criterion
+                for criterion in source
+                if criterion in ["tag", "tag_class", "tag_id", "tag_xpath", "tag_css"]
+            ]
+            if len(criteria) > 1:
+                logging.warning(
+                    f"get_screenshots() received multiple scraping criteria. Only one will be used. {source}"
+                )
+
             ## Get the screenshot
             driver.get(source["url"])
-            elements = driver.find_elements(
-                By.CLASS_NAME, source["image_element_class"]
-            )
+
+            # Find the requested element
+            # You can only use one of these criteria
+            if "tag" in source:
+                criteria = By.NAME
+                value = source["tag"]
+            elif "tag_class" in source:
+                criteria = By.CLASS_NAME
+                value = source["tag_class"]
+            elif "tag_id" in source:
+                criteria = By.ID
+                value = source["tag_id"]
+            elif "tag_xpath" in source:
+                criteria = By.XPATH
+                value = source["tag_xpath"]
+            elif "tag_css" in source:
+                criteria = By.CSS_SELECTOR
+                value = source["tag_css"]
+            else:
+                logging.warning(
+                    f"get_screenshots() was given unhandled criteria from {source}. No results scraped."
+                )
+            elements = driver.find_elements(criteria, value)
+
             # For some dynamically generated images, scraping them too quickly leads to incompelte screenshots
             sleep(source.get("delay_secs_for_loading", 5))
-            chart_element = elements[source["image_element_number"]]
+            # Select the ith element
+            chart_element = elements[source["element_number"]]
+            # Take the screenshot
             screenshot_b64 = chart_element.screenshot_as_base64
             screenshots.append(
                 {"image": screenshot_b64, "heading": source.get("header", None)}
