@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     unzip \
+    curl \
     libglib2.0-0 \
     libnss3 \
     libgconf-2-4 \
@@ -48,9 +49,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
 COPY . .
-
-# Make sure your local chromedriver is executable (just in case)
-RUN chmod +x assets/chromedriver_linux64
 
 # Command to run the application
 CMD ["python", "run.py"]
