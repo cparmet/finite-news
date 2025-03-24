@@ -10,7 +10,6 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import NoSuchDriverException
 from time import sleep
 import base64
 from io import BytesIO
@@ -228,32 +227,39 @@ def scrape_source(source, requests_timeout, retry=True):
 
 
 def load_selenium_driver():
-    ## Set up Selenium
+    ## Configure Selenium
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
-    # Force the location to the path of the executable
+    # Find the correct location of the chromedriver, depending if we're in local dev mode or deployed to GCP
     os_name = platform.system()
-    # To download appropriate chromedriver, see https://googlechromelabs.github.io/chrome-for-testing/
+
     if os_name == "Darwin":
-        path_to_chromedriver = "assets/chromedriver_mac_arm64"
+        # For local Mac development
+        # To download appropriate chromedriver, see https://googlechromelabs.github.io/chrome-for-testing/
+        # TODO: This now could just be a system install too
+        service = webdriver.ChromeService(
+            executable_path="assets/chromedriver_mac_arm64"
+        )
     elif os_name == "Linux":
-        path_to_chromedriver = "assets/chromedriver_linux64"
+        # For Google Cloud Run (Docker container), use the system-installed chromedriver
+        # To change the chromedriver for a different image, update Dockerfile
+        service = webdriver.ChromeService(executable_path="/usr/local/bin/chromedriver")
     else:
         raise AttributeError(
-            f"Unexpected platform in get_screenshots. No chromedriver asset for {os_name}. Download at https://googlechromelabs.github.io/chrome-for-testing/ and add new case to populate path_to_chromedriver?"
+            f"Unexpected platform in get_screenshots. No chromedriver handled for {os_name}"
         )
     try:
-        service = webdriver.ChromeService(executable_path=path_to_chromedriver)
-    except NoSuchDriverException:
+        driver = webdriver.Chrome(service=service, options=options)
+        driver.maximize_window()
+        return driver
+    except Exception as e:
         logging.warning(
-            f"Selenium could not find a ChromeDriver executable at the path {path_to_chromedriver}. os_name = {os_name}"
+            f"Selenium could not initialize Chrome driver: {str(type(e))}, {str(e)}. os_name = {os_name}"
         )
-        return [], []
-
-    options = Options()
-    options.add_argument("headless")
-    driver = webdriver.Chrome(service=service, options=options)
-    driver.maximize_window()
-    return driver
+        return None
 
 
 def scrape_text_with_selenium(source, driver=None):

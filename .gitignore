@@ -9,3 +9,6 @@ stocks_*
 .DS_Store
 models/*
 app.log
+screenshots_*
+*/chromedriver*
+*/archive/*
