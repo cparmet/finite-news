@@ -107,7 +107,8 @@ def format_issue(issue_config, content, log_stream=None):
         - forecast (dict): Forecast content, if any
         - events_html (str): HTML-formatted section with upcoming events
         - stock_plots (list of base64): List of pngs as base64
-        - screenshots (list): Other images to attach to the image
+        - images (list of base64): Other images to attach to the image. Will combine stock_plots and screenshot images as one list
+        - screenshot_headings (list of str): Headings for the screenshots that appear in images
     issue_config (dict): The settings for the issue
     log_stream (String IO): Optional, the log report from running Finite News
 
@@ -166,11 +167,17 @@ def format_issue(issue_config, content, log_stream=None):
         f"<h3>💰 Financial update</h3>{stocks_block}",
         condition=stocks_block,
     )
+    # Create an HTML item for each image from get_screenshots().`
     # Increment cids if stock plots already attached to email
+    # since cid is the order of the attachment to the email
+
     images_block = "".join(
         [
-            f"<img src='cid:image_{i + len(content['stock_plots'])}', alt='image_{i + len(content['stock_plots'])}'><br>"
-            for i in range(0, len(content["images"]) - len(content["stock_plots"]))
+            f"<h4>{screenshot_heading}</h4><img src='cid:image_{cid_i + len(content['stock_plots'])}', alt='image_{cid_i + len(content['stock_plots'])}'><br>"
+            for cid_i, screenshot_heading in zip(
+                range(0, len(content["images"]) - len(content["stock_plots"])),
+                content["screenshot_headings"],
+            )
         ]
     )
     image_urls_block = "".join(content["image_urls"])

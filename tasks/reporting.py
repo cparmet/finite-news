@@ -5,9 +5,18 @@ import logging
 from datetime import date, timedelta
 import feedparser
 import pandas as pd
+import platform
 import requests
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import NoSuchDriverException
 from time import sleep
+import base64
+from io import BytesIO
+from PIL import Image
 
+from tasks.editing import postprocess_scraped_content
 from tasks.events import get_calendar_events
 from tasks.io import get_fn_secret, parse_frequency_config
 
@@ -16,38 +25,6 @@ feedparser.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/5
 HEADERS = {
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36"
 }
-
-
-def dedup(li):
-    """De-duplicate a list while preserving the order of elements, unlike list(set()).
-
-    ARGUMENTS
-    li (list): A list of items
-
-    RETURNS
-    The list in its original order, but without dups
-
-    """
-    seen = set()
-    return [x for x in li if not (x in seen or seen.add(x))]
-
-
-def heal_inner_n(s):
-    """Replace one or more inner \n with a colon.
-
-    NOTES
-    Assumes \n have been removed from ends
-
-    ARGUMENTS
-    s (str): A string with or without one or more \n in the middle
-
-    RETURNS
-    string with any \n in the middle replaced with a ": "
-    """
-
-    if "\n" in s:
-        return s.split("\n")[0] + ": " + s.split("\n")[-1]
-    return s
 
 
 def create_calendar_sitemap_url(base_url, path_format, substract_one_day):
@@ -93,6 +70,9 @@ def scrape_source(source, requests_timeout, retry=True):
 
     """
     try:
+        if source.get("use_selenium", False):
+            return scrape_text_with_selenium(source)
+
         if "calendar_sitemap_format" in source:
             url = create_calendar_sitemap_url(
                 source["url"],
@@ -239,66 +219,117 @@ def scrape_source(source, requests_timeout, retry=True):
             sleep(3)
             scrape_source(source, requests_timeout, retry=False)
 
-        # Apply certain text cleaning that depends on source config
-        # TODO: Move these to editing; keep items associated with their source config longer
-        # Also because then user can apply these configs to API sources, not just scrapes
-
-        # Check if certain phrases are present/absent
-        if "must_contain" in source:
-            # When it's a list, it's an OR
-            if isinstance(source["must_contain"], list):
-                items = [
-                    h
-                    for h in items
-                    if sum(
-                        [
-                            must_contain.lower() in h.lower()
-                            for must_contain in source["must_contain"]
-                        ]
-                    )
-                    > 0
-                ]
-            else:
-                items = [
-                    h for h in items if source["must_contain"].lower() in h.lower()
-                ]
-        if "cant_contain" in source:
-            if isinstance(source["cant_contain"], list):
-                cant_contains = source["cant_contain"]
-            else:
-                cant_contains = [source["cant_contain"]]
-            for cant_contain in cant_contains:
-                items = [h for h in items if cant_contain.lower() not in h.lower()]
-
-        # Clean text
-        if "remove_text" in source:
-            items = [h.replace(source["remove_text"], "") for h in items]
-
-        # Remove \n and \t from ends of strings. Needed before heal_inner_n
-        precleaning = True
-        while precleaning:
-            original_len = sum([len(h) for h in items])
-            items = [h.strip("\r").strip("\n").strip("\t") for h in items]
-            precleaning = original_len != sum([len(h) for h in items])
-
-        # Clean strings with a "\n" in the middle
-        if "heal_inner_n" in source:
-            items = [heal_inner_n(item) for item in items]
-
-        # Ensure each string is long enough.
-        if "min_words" in source:
-            # simple way to count words
-            items = [
-                item
-                for item in items
-                if len(item.strip().split(" ")) >= source["min_words"]
-            ]
-
-        return dedup(items)
+        return items
     except Exception as e:
         logging.warning(
             f"Source failed on {source['name']}. {str(type(e))}, {str(e)}. Source: {source}"
         )
+        return []
+
+
+def load_selenium_driver():
+    ## Set up Selenium
+
+    # Force the location to the path of the executable
+    os_name = platform.system()
+    # To download appropriate chromedriver, see https://googlechromelabs.github.io/chrome-for-testing/
+    if os_name == "Darwin":
+        path_to_chromedriver = "assets/chromedriver_mac_arm64"
+    elif os_name == "Linux":
+        path_to_chromedriver = "assets/chromedriver_linux64"
+    else:
+        raise AttributeError(
+            f"Unexpected platform in get_screenshots. No chromedriver asset for {os_name}. Download at https://googlechromelabs.github.io/chrome-for-testing/ and add new case to populate path_to_chromedriver?"
+        )
+    try:
+        service = webdriver.ChromeService(executable_path=path_to_chromedriver)
+    except NoSuchDriverException:
+        logging.warning(
+            f"Selenium could not find a ChromeDriver executable at the path {path_to_chromedriver}. os_name = {os_name}"
+        )
+        return [], []
+
+    options = Options()
+    options.add_argument("headless")
+    driver = webdriver.Chrome(service=service, options=options)
+    driver.maximize_window()
+    return driver
+
+
+def scrape_text_with_selenium(source, driver=None):
+    """Extract text from HTML using Selenium and headless Chrome
+
+    Args:
+        source (dict): A dictionary describing what to scrape
+        drivers (webdriver.Chrome): A Selenium Chrome driver, if caller has already loaded one.
+            - If None, we'll load a driver just for the session
+
+    """
+    try:
+        # Validate source config
+        criteria = [
+            criterion
+            for criterion in source
+            if criterion in ["tag", "tag_class", "tag_id", "tag_xpath", "tag_css"]
+        ]
+        if len(criteria) > 1:
+            logging.warning(
+                f"scrape_text_with_selenium() received multiple scraping criteria. Only one will be used. {source}"
+            )
+
+        if not driver:
+            driver = load_selenium_driver()
+            quit_after_scrape = True
+        else:
+            quit_after_scrape = False
+
+        driver.get(source["url"])
+        # These are one at a time right now, not composable like with our Beautiful Soup implementation
+        if "tag" in source:
+            criteria = By.NAME
+            value = source["tag_name"]
+        elif "tag_class" in source:
+            criteria = By.CLASS_NAME
+            value = source["tag_class"]
+        elif "tag_id" in source:
+            criteria = By.ID
+            value = source["tag_id"]
+        elif "tag_xpath" in source:
+            criteria = By.XPATH
+            value = source["tag_xpath"]
+        elif "tag_css" in source:
+            criteria = By.CSS_SELECTOR
+            value = source["tag_css"]
+        else:
+            logging.warning(
+                f"scrape_text_with_selenium() was given unhandled criteria from {source}. No results scraped."
+            )
+            if quit_after_scrape:
+                driver.quit()
+            return []
+
+        elements = [element.text for element in driver.find_elements(criteria, value)]
+
+        if "item_number" in source:
+            # Converts 1-based index to 0-based Python index
+            elements = [elements[source["item_number"] - 1]]
+
+        if quit_after_scrape:
+            driver.quit()
+        return elements
+
+    except Exception as e:
+        logging.warning(
+            f"Error [a] in scrape_text_with_selenium() on {source['url']}: {str(type(e))}, {str(e)}. source: {source}"
+        )
+        if quit_after_scrape:
+            try:
+                driver.quit()
+            except Exception as e:
+                logging.warning(
+                    f"Error [b] in scrape_text_with_selenium() on {source['url']}: {str(type(e))}, {str(e)}. source: {source}"
+                )
+                return []
         return []
 
 
@@ -441,11 +472,8 @@ def research_source(source, requests_timeout):
             items = [f"""{header}{img}{body}"""]
 
         # Lightly postprocess results
-        if items:
-            items = [item.replace("\n", "").strip() for item in items if item]
-            # The attribute can have either of two names
-            max_items = source.get("max_items", source.get("max_headlines", None))
-            items = items[0:max_items]
+        items = postprocess_scraped_content(items, source)
+
         # Log count
         if len(items) == 0 and not source.get("exclude_from_0_results_warning", False):
             # Escalate to admin if no results were returned, and that was unexpected. Source's scraper/API may be broken.
@@ -560,33 +588,45 @@ def get_car_talk_credit():
         return []
 
 
-def get_screenshots(sources):
-    """Not currently working. Disabled."""
-    return []
+def get_screenshots(sources, dev_mode=False):
+    """Scrape images that require taking a screenshot with Selenium.
 
+    Returns: A list of dicts with {image: image as base64, heading: any header text to place above the image}
+    """
+    screenshots = []
+    driver = None
+    try:
+        driver = load_selenium_driver()
 
-#     options = Options()
-#     options.add_argument('headless')
-#     s=Service(ChromeDriverManager().install())
-#     driver = webdriver.Chrome(service=s, options=options)
-#     driver.maximize_window()
+        ## Get the screenshot for each source
+        for i, source in enumerate(sources):
+            ## Get the screenshot
+            driver.get(source["url"])
+            elements = driver.find_elements(
+                By.CLASS_NAME, source["image_element_class"]
+            )
+            # For some dynamically generated images, scraping them too quickly leads to incompelte screenshots
+            sleep(source.get("delay_secs_for_loading", 5))
+            chart_element = elements[source["image_element_number"]]
+            screenshot_b64 = chart_element.screenshot_as_base64
+            screenshots.append(
+                {"image": screenshot_b64, "heading": source.get("header", None)}
+            )
+            if dev_mode:
+                ## Save locally for debug
+                # Convert base64 string to image
+                img = Image.open(BytesIO(base64.b64decode(screenshot_b64)))
+                # Save as JPG
+                img.save(f"screenshots_{i}.jpg", "JPEG")
 
-#     screenshots = []
-#     for source in sources:
-#         url = source["url"]
-#         driver.get(url)
-#         try:
-#             elements = driver.find_elements(By.CLASS_NAME, source["element_class"])
-#             if source.get("automate_gradually", False):
-#             # TODO: Temporary workaround for Birdcast. There's surely a better way
-#                 b64_screenshots = [element.screenshot_as_base64 for element in elements]
-#                 screenshot_b64 = b64_screenshots[source["element_number"]]
-#             else:
-#                 # The simpler way that should work for nondynamically loaded images
-#                 chart_element = elements[source["element_number"]]
-#                 screenshot_b64 = chart_element.screenshot_as_base64
-#         except Exception as e:
-#             logging.warning(f"Selenium error on {source['url']}: {str(type(e))}, {str(e)}")
-#         screenshots.append(screenshot_b64)
-#         driver.quit()
-#     return screenshots
+    except Exception as e:
+        print(e)
+        logging.warning(
+            f"Error in get_screenshots() on {source['url']}: {str(type(e))}, {str(e)}"
+        )
+        return []
+
+    if driver:
+        driver.quit()
+
+    return screenshots
