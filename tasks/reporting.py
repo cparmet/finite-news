@@ -16,6 +16,7 @@ import base64
 from io import BytesIO
 from PIL import Image
 
+from tasks.editing import postprocess_scraped_content
 from tasks.events import get_calendar_events
 from tasks.io import get_fn_secret, parse_frequency_config
 
@@ -24,38 +25,6 @@ feedparser.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/5
 HEADERS = {
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36"
 }
-
-
-def dedup(li):
-    """De-duplicate a list while preserving the order of elements, unlike list(set()).
-
-    ARGUMENTS
-    li (list): A list of items
-
-    RETURNS
-    The list in its original order, but without dups
-
-    """
-    seen = set()
-    return [x for x in li if not (x in seen or seen.add(x))]
-
-
-def heal_inner_n(s):
-    """Replace one or more inner \n with a colon.
-
-    NOTES
-    Assumes \n have been removed from ends
-
-    ARGUMENTS
-    s (str): A string with or without one or more \n in the middle
-
-    RETURNS
-    string with any \n in the middle replaced with a ": "
-    """
-
-    if "\n" in s:
-        return s.split("\n")[0] + ": " + s.split("\n")[-1]
-    return s
 
 
 def create_calendar_sitemap_url(base_url, path_format, substract_one_day):
@@ -503,11 +472,8 @@ def research_source(source, requests_timeout):
             items = [f"""{header}{img}{body}"""]
 
         # Lightly postprocess results
-        if items:
-            items = [item.replace("\n", "").strip() for item in items if item]
-            # The attribute can have either of two names
-            max_items = source.get("max_items", source.get("max_headlines", None))
-            items = items[0:max_items]
+        items = postprocess_scraped_content(items, source)
+
         # Log count
         if len(items) == 0 and not source.get("exclude_from_0_results_warning", False):
             # Escalate to admin if no results were returned, and that was unexpected. Source's scraper/API may be broken.

@@ -10,6 +10,126 @@ from time import sleep
 from tasks.io import get_fn_secret, load_file_from_bucket
 
 
+def dedup(li):
+    """De-duplicate a list while preserving the order of elements, unlike list(set()).
+
+    ARGUMENTS
+    li (list): A list of items
+
+    RETURNS
+    The list in its original order, but without dups
+
+    """
+    seen = set()
+    return [x for x in li if not (x in seen or seen.add(x))]
+
+
+def heal_inner_n(s):
+    """Replace one or more inner \n with a colon.
+
+    NOTES
+    Assumes \n have been removed from ends
+
+    ARGUMENTS
+    s (str): A string with or without one or more \n in the middle
+
+    RETURNS
+    string with any \n in the middle replaced with a ": "
+    """
+
+    if "\n" in s:
+        return s.split("\n")[0] + ": " + s.split("\n")[-1]
+    return s
+
+
+def postprocess_scraped_content(items, source):
+    # Apply certain text cleaning that depends on source config
+    # TODO: keep items associated with their source config longer
+    # Also because then user can apply these configs to API sources, not just scrapes
+
+    if not items:
+        return items
+    try:
+        # Check if certain phrases are present/absent
+        if "must_contain" in source:
+            # When it's a list, it's an OR
+            if isinstance(source["must_contain"], list):
+                items = [
+                    h
+                    for h in items
+                    if sum(
+                        [
+                            must_contain.lower() in h.lower()
+                            for must_contain in source["must_contain"]
+                        ]
+                    )
+                    > 0
+                ]
+            else:
+                items = [
+                    h for h in items if source["must_contain"].lower() in h.lower()
+                ]
+        if "cant_contain" in source:
+            if isinstance(source["cant_contain"], list):
+                cant_contains = source["cant_contain"]
+            else:
+                cant_contains = [source["cant_contain"]]
+            for cant_contain in cant_contains:
+                items = [h for h in items if cant_contain.lower() not in h.lower()]
+
+        # Clean text
+        if "remove_text" in source:
+            items = [h.replace(source["remove_text"], "") for h in items]
+
+        # Remove \n and \t from ends of strings. Needed before heal_inner_n
+        precleaning = True
+        while precleaning:
+            original_len = sum([len(h) for h in items])
+            items = [h.strip("\r").strip("\n").strip("\t") for h in items]
+            precleaning = original_len != sum([len(h) for h in items])
+
+        # Clean strings with a "\n" in the middle
+        if "heal_inner_n" in source:
+            items = [heal_inner_n(item) for item in items]
+
+        # Ensure each string is long enough.
+        if "min_words" in source:
+            # simple way to count words
+            items = [
+                item
+                for item in items
+                if len(item.strip().split(" ")) >= source["min_words"]
+            ]
+
+        items = dedup(items)
+
+        items = [item.replace("\n", "").strip() for item in items if item]
+
+        # The attribute can have either of two names
+        max_items = source.get("max_items", source.get("max_headlines", None))
+        if items:
+            items = items[0:max_items]
+
+        # Validate items, if requested
+        if "allowed_values" in source:
+            unallowed_items = [
+                item for item in items if item not in source["allowed_values"]
+            ]
+            if unallowed_items:
+                items = [item for item in items if item not in unallowed_items]
+                logging.warning(
+                    f"Removed unallowed values in {source['name']}: {set(unallowed_items)}. Allowed values: {source['allowed_values']}. Remaining items: {items}"
+                )
+
+        return items
+
+    except Exception as e:
+        logging.warning(
+            f"postprocess_scraped_content failed on {source['name']}. {str(type(e))}, {str(e)}. Source: {source}"
+        )
+        return []
+
+
 def remove_emojis(text):
     """Utility function that removes all emojis from a string
     ARGUMENTS

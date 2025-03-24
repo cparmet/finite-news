@@ -14,10 +14,10 @@ from tasks.io import (
     load_publication_config,
     load_subscriber_configs,
 )
-from tasks.editing import edit_headlines, unnest_list, cache_issue_content
+from tasks.editing import dedup, edit_headlines, unnest_list, cache_issue_content
 from tasks.layout import format_issue
 from tasks.io import get_fn_secret
-from tasks.reporting import dedup, research_source, get_screenshots
+from tasks.reporting import research_source, get_screenshots
 from tasks.sports import (
     get_todays_nba_game,
     edit_sports_headlines,
