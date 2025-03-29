@@ -309,7 +309,7 @@ image_sources:
       type: screenshot
       url: url
       tag_class: class_name # see get_screenshots() for options on identifying the element to screenshot
-      element_number: 3 # Which of the qualifying elements on the page to screenshot
+      element_number: 3 # Which of the qualifying elements on the page to screenshot? 1 is first
       header: "header text/ html" # What will go in the h4 above this screenshot
       delay_secs_for_loading: 5 # For some elements that are generated dynamically, wait for it to load or we'll take a partial screenshot
       frequency: # Optional, only take the screenshot on Tuesdays

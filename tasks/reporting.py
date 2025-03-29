@@ -671,19 +671,22 @@ def get_screenshots(sources, dev_mode=False):
 
             # For some dynamically generated images, scraping them too quickly leads to incompelte screenshots
             sleep(source.get("delay_secs_for_loading", 5))
-            # Select the ith element
-            chart_element = elements[source["element_number"]]
-            # Take the screenshot
-            screenshot_b64 = chart_element.screenshot_as_base64
-            screenshots.append(
-                {"image": screenshot_b64, "heading": source.get("header", None)}
-            )
-            if dev_mode:
-                ## Save locally for debug
-                # Convert base64 string to image
-                img = Image.open(BytesIO(base64.b64decode(screenshot_b64)))
-                # Save as JPG
-                img.save(f"screenshots_{i}.jpg", "JPEG")
+            # Select the ith element, if present
+            if len(elements) >= source["element_number"]:
+                chart_element = elements[source["element_number"] - 1]
+                # Take the screenshot
+                screenshot_b64 = chart_element.screenshot_as_base64
+                screenshots.append(
+                    {"image": screenshot_b64, "heading": source.get("header", None)}
+                )
+                if dev_mode:
+                    ## Save locally for debug
+                    # Convert base64 string to image
+                    img = Image.open(BytesIO(base64.b64decode(screenshot_b64)))
+                    # Save as JPG
+                    img.save(f"screenshots_{i}.jpg", "JPEG")
+            else:
+                return []
 
     except Exception as e:
         print(e)
