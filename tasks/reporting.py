@@ -295,7 +295,7 @@ def scrape_text_with_selenium(source, driver=None):
         # Find the requested element
         # You can only use one of these criteria
         if "tag" in source:
-            criteria = By.NAME
+            criteria = By.TAG_NAME
             value = source["tag"]
         elif "tag_class" in source:
             criteria = By.CLASS_NAME
@@ -320,9 +320,12 @@ def scrape_text_with_selenium(source, driver=None):
         elements = [element.text for element in driver.find_elements(criteria, value)]
 
         # Select only the single element the user wants, if requested
-        if elements and "item_number" in source:
-            # Converts 1-based index to 0-based Python index
-            elements = [elements[source["item_number"] - 1]]
+        if "item_number" in source:
+            if len(elements) >= source["item_number"]:
+                # Converts 1-based index to 0-based Python index
+                elements = [elements[source["item_number"] - 1]]
+            else:
+                elements = []
 
         if quit_after_scrape:
             driver.quit()
@@ -649,7 +652,7 @@ def get_screenshots(sources, dev_mode=False):
             # Find the requested element
             # You can only use one of these criteria
             if "tag" in source:
-                criteria = By.NAME
+                criteria = By.TAG_NAME
                 value = source["tag"]
             elif "tag_class" in source:
                 criteria = By.CLASS_NAME
@@ -671,19 +674,22 @@ def get_screenshots(sources, dev_mode=False):
 
             # For some dynamically generated images, scraping them too quickly leads to incompelte screenshots
             sleep(source.get("delay_secs_for_loading", 5))
-            # Select the ith element
-            chart_element = elements[source["element_number"]]
-            # Take the screenshot
-            screenshot_b64 = chart_element.screenshot_as_base64
-            screenshots.append(
-                {"image": screenshot_b64, "heading": source.get("header", None)}
-            )
-            if dev_mode:
-                ## Save locally for debug
-                # Convert base64 string to image
-                img = Image.open(BytesIO(base64.b64decode(screenshot_b64)))
-                # Save as JPG
-                img.save(f"screenshots_{i}.jpg", "JPEG")
+            # Select the ith element, if present
+            if len(elements) >= source["element_number"]:
+                chart_element = elements[source["element_number"] - 1]
+                # Take the screenshot
+                screenshot_b64 = chart_element.screenshot_as_base64
+                screenshots.append(
+                    {"image": screenshot_b64, "heading": source.get("header", None)}
+                )
+                if dev_mode:
+                    ## Save locally for debug
+                    # Convert base64 string to image
+                    img = Image.open(BytesIO(base64.b64decode(screenshot_b64)))
+                    # Save as JPG
+                    img.save(f"screenshots_{i}.jpg", "JPEG")
+            else:
+                return []
 
     except Exception as e:
         print(e)
