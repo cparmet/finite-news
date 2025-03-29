@@ -295,7 +295,7 @@ def scrape_text_with_selenium(source, driver=None):
         # Find the requested element
         # You can only use one of these criteria
         if "tag" in source:
-            criteria = By.NAME
+            criteria = By.TAG_NAME
             value = source["tag"]
         elif "tag_class" in source:
             criteria = By.CLASS_NAME
@@ -649,7 +649,7 @@ def get_screenshots(sources, dev_mode=False):
             # Find the requested element
             # You can only use one of these criteria
             if "tag" in source:
-                criteria = By.NAME
+                criteria = By.TAG_NAME
                 value = source["tag"]
             elif "tag_class" in source:
                 criteria = By.CLASS_NAME
