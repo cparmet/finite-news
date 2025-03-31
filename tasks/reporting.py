@@ -319,6 +319,8 @@ def scrape_text_with_selenium(source, driver=None):
 
         elements = [element.text for element in driver.find_elements(criteria, value)]
 
+        sleep(source.get("delay_secs_for_loading", 0))
+
         # Select only the single element the user wants, if requested
         if "item_number" in source:
             if len(elements) >= source["item_number"]:
