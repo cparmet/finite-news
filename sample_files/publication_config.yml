@@ -40,6 +40,7 @@ alerts_sources:
         must_contain: "Text we're looking for"
         max_items: 1
         alert_preface: New listings!
+        seasons: ["4/1-6/1", "7/1-9/1"] # Optional, only run this alert during either of these date ranges
     # Alert subscriber if a new electric car is added to the US Government's list of vehicles eligible for tax incentives (up to $7500!)
     # The URL is current as of Feb 2024
     # In this example, each alert will contain the type of car, make, and model, like "EV Chevrolet Bolt". But the exclusions would not alert us about Audis
@@ -315,3 +316,4 @@ image_sources:
       frequency: # Optional, only take the screenshot on Tuesdays
         frequency: weekly
         day_of_week: Tuesday
+      seasons: ["January 3-June 30", "12/1-"] # Optional, only take the screenshot in these date ranges
