@@ -17,7 +17,7 @@ from PIL import Image
 
 from tasks.editing import populate_variables, postprocess_scraped_content
 from tasks.events import get_calendar_events
-from tasks.io import get_fn_secret, parse_frequency_config
+from tasks.io import get_fn_secret, parse_frequency_config, parse_seasons
 
 feedparser.USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome 75.0.3770.142 Safari/537.36"
 
@@ -370,7 +370,7 @@ def research_source(source, requests_timeout):
             # For general purpose sources, a frequency_config is optional.
             # So if it's missing, still include the source in reporting.
             empty_config_returns_true=True,
-        ):
+        ) or not parse_seasons(source.get("seasons", [])):
             return []
 
         # Get specialized content
@@ -633,7 +633,7 @@ def get_screenshots(sources, dev_mode=False):
                 # For screenshots, a frequency_config is optional.
                 # So if it's missing, still include the source in reporting.
                 empty_config_returns_true=True,
-            ):
+            ) or not parse_seasons(source.get("seasons", [])):
                 # TODO: Call parse_frequency_config() for all sources of all types once during loading, not separately for each type of source
                 continue
 

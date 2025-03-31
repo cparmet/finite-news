@@ -3,6 +3,7 @@
 import calendar
 from copy import deepcopy
 from datetime import date
+from dateutil import parser
 from io import StringIO
 from google.cloud import storage
 import logging
@@ -242,6 +243,54 @@ def day_name_to_number(day_name):
     )
 
 
+def parse_seasons(seasons):
+    """Check a source's seasons configuration to decide if today is within ANY of the allowed periods to deliver this source
+
+    ARGUMENTS
+    seasons (list of str): List of strings with season definitions, e.g.
+        - "4/1 - 4/30"
+        - "April 1 - April 30"
+        - "Apr 1 - Apr 30"
+        - "Apr 1 -"
+        - "-Apr 30"
+        - "3/30/2021  -  March 31, 2025"
+
+    RETURNS
+    Boolean: True if today is within at least one of the specified season periods, False otherwise
+    """
+    if not seasons:
+        return True
+
+    for season in seasons:
+        if season.count("-") != 1:
+            logging.warning(
+                f"parse_seasons(): Couldn't parse {season}. Expected one '-', appears {season.count('-')} times."
+            )
+            continue
+        try:
+            start_date, end_date = season.split(
+                "-",
+            )
+            if not start_date:
+                start_date = date.today()
+            else:
+                start_date = parser.parse(start_date.strip()).date()
+            if not end_date:
+                end_date = date.today()
+            else:
+                end_date = parser.parse(end_date.strip()).date()
+
+            if end_date < start_date:
+                continue
+
+            if start_date <= date.today() and end_date >= date.today():
+                return True
+        except Exception as e:
+            logging.warning(f"parse_seasons(): Couldn't parse {season}. {e}")
+            return False
+    return False
+
+
 def parse_frequency_config(
     frequency_config,
     empty_config_returns_true=False,
@@ -364,8 +413,12 @@ def load_events_config(publication_events_sources, subscriber_sources):
             empty_config_returns_true=False,
             context=f"load_events_config(), {subscriber_events_sources}",
         )
+        seasons_match = parse_seasons(
+            subscriber_sources.get("events", {}).get("seasons", [])
+        )
         if (
             frequency_match
+            and seasons_match
             and len(publication_events_sources) > 0
             and len(subscriber_events_sources) > 0
         ):
@@ -401,9 +454,10 @@ def load_stocks_config(subscriber_sources):
             empty_config_returns_true=False,
             context=f"load_stocks_config(), {stocks_config}",
         )
+        seasons_match = parse_seasons(stocks_config.get("seasons", []))
         frequency = stocks_config.get("frequency", None)
         ticker_sets = stocks_config.get("tickers", [])
-        if len(ticker_sets) == 0 or not frequency_match:
+        if len(ticker_sets) == 0 or not frequency_match or not seasons_match:
             return [], None
         return [
             [ticker.strip() for ticker in ticker_set.split(",")]
@@ -445,6 +499,11 @@ def load_subscriber_config(subscriber_config_file_name, publication_config):
     ):
         logging.info(
             f"{subscriber_config['email']}: No issue today, not in issue_frequency."
+        )
+        return None
+    if not parse_seasons(subscriber_config.get("seasons", [])):
+        logging.info(
+            f"{subscriber_config['email']}: No issue today, not in seasons config."
         )
         return None
 
@@ -501,11 +560,10 @@ def load_subscriber_config(subscriber_config_file_name, publication_config):
         for mbta_source in subscriber_config.get("sources", {}).get("mbta", [])
         if parse_frequency_config(
             mbta_source,
-            # We expect this kind of source to include a frequency_config
-            # So missing frequency_config is an error.
-            empty_config_returns_true=False,
+            empty_config_returns_true=True,  # Frequency config is optional for MBTAs
             context=f"MBTA API: Alerts, {mbta_source}",
         )
+        and parse_seasons(mbta_source.get("seasons", []))
     ]
     issue["image_sources"] = filter_sources(
         issue["image_sources"],

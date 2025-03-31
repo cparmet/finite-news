@@ -16,7 +16,7 @@ email: SUBSCRIBER_NAME@SERVER.COM # Where should we deliver the paper?
 admin: True # Append technical logs (such as exceptions) at the end of the issue email? Deleting this line also sets the value to False.
 issue_frequency: # Optional section: specify how often to deliver the issue. If absent, will deliver daily.
   frequency: weekly
-  day_of_week: Monday # If frequency = monthly/weekly/eow, spell out full day name, case insensitive. Note day = at time scheduled job is run in UTC
+  day_of_week: Monday # If frequency = weekly/every_other_week, spell out full day name, case insensitive. Note day = at time scheduled job is run in UTC
 
 # Customize content
 editorial:
