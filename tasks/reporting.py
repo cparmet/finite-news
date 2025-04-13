@@ -335,14 +335,14 @@ def scrape_text_with_selenium(source, driver=None):
 
     except Exception as e:
         logging.warning(
-            f"Error [a] in scrape_text_with_selenium() on {source['url']}: {str(type(e))}, {str(e)}. source: {source}"
+            f"Error in scrape_text_with_selenium() on {source['url']}: {str(type(e))}, {str(e)}. source: {source}"
         )
         if quit_after_scrape:
             try:
                 driver.quit()
             except Exception as e:
                 logging.warning(
-                    f"Error [b] in scrape_text_with_selenium() on {source['url']}: {str(type(e))}, {str(e)}. source: {source}"
+                    f"Error while trying to quit driver in scrape_text_with_selenium() on {source['url']}: {str(type(e))}, {str(e)}. source: {source}"
                 )
                 return []
         return []
