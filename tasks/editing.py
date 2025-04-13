@@ -25,7 +25,7 @@ def dedup(li):
     return [x for x in li if not (x in seen or seen.add(x))]
 
 
-def heal_inner_n(s):
+def heal_inner_n(s, heal_2nd_plus_with_ellipses=False):
     """Replace one or more inner \n with a colon.
 
     NOTES
@@ -33,12 +33,19 @@ def heal_inner_n(s):
 
     ARGUMENTS
     s (str): A string with or without one or more \n in the middle
+    heal_2nd_plus_with_ellipses (bool): If True, and there are more than one \n, replace the second \n and beyond with "..."
 
     RETURNS
     string with any \n in the middle replaced with a ": "
     """
 
     if "\n" in s:
+        if s.count("\n") > 1 and heal_2nd_plus_with_ellipses:
+            return (
+                s.split("\n")[0] + ": " + "...".join(s.split("\n")[1:])
+                # " -- ".join(s.split("\n")[1:]
+                # )
+            )
         return s.split("\n")[0] + ": " + s.split("\n")[-1]
     return s
 
@@ -114,7 +121,15 @@ def postprocess_scraped_content(items, source):
 
         # Clean strings with a "\n" in the middle
         if "heal_inner_n" in source:
-            items = [heal_inner_n(item) for item in items]
+            items = [
+                heal_inner_n(
+                    s=item,
+                    heal_2nd_plus_with_ellipses=source.get(
+                        "heal_2nd_plus_with_ellipses", False
+                    ),
+                )
+                for item in items
+            ]
 
         # Ensure each string is long enough.
         if "min_words" in source:

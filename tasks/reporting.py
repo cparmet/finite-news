@@ -335,14 +335,14 @@ def scrape_text_with_selenium(source, driver=None):
 
     except Exception as e:
         logging.warning(
-            f"Error [a] in scrape_text_with_selenium() on {source['url']}: {str(type(e))}, {str(e)}. source: {source}"
+            f"Error in scrape_text_with_selenium() on {source['url']}: {str(type(e))}, {str(e)}. source: {source}"
         )
         if quit_after_scrape:
             try:
                 driver.quit()
             except Exception as e:
                 logging.warning(
-                    f"Error [b] in scrape_text_with_selenium() on {source['url']}: {str(type(e))}, {str(e)}. source: {source}"
+                    f"Error while trying to quit driver in scrape_text_with_selenium() on {source['url']}: {str(type(e))}, {str(e)}. source: {source}"
                 )
                 return []
         return []
@@ -513,8 +513,6 @@ def research_source(source, requests_timeout):
                 f"""{source.get('alert_preface', '')} <a href="{source['url']}" target="_blank"{alt_text}>{item}</a>"""
                 for item in items
             ]
-            # Populate any dynamic variables
-            items = [populate_variables(item) for item in items]
 
             return items
         else:
@@ -675,7 +673,7 @@ def get_screenshots(sources, dev_mode=False):
             elements = driver.find_elements(criteria, value)
 
             # For some dynamically generated images, scraping them too quickly leads to incompelte screenshots
-            sleep(source.get("delay_secs_for_loading", 5))
+            sleep(source.get("delay_secs_for_loading", 0))
             # Select the ith element, if present
             if len(elements) >= source["element_number"]:
                 chart_element = elements[source["element_number"] - 1]
