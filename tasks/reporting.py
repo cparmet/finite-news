@@ -675,7 +675,7 @@ def get_screenshots(sources, dev_mode=False):
             elements = driver.find_elements(criteria, value)
 
             # For some dynamically generated images, scraping them too quickly leads to incompelte screenshots
-            sleep(source.get("delay_secs_for_loading", 5))
+            sleep(source.get("delay_secs_for_loading", 0))
             # Select the ith element, if present
             if len(elements) >= source["element_number"]:
                 chart_element = elements[source["element_number"] - 1]
