@@ -513,8 +513,6 @@ def research_source(source, requests_timeout):
                 f"""{source.get('alert_preface', '')} <a href="{source['url']}" target="_blank"{alt_text}>{item}</a>"""
                 for item in items
             ]
-            # Populate any dynamic variables
-            items = [populate_variables(item) for item in items]
 
             return items
         else:
