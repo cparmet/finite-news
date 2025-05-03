@@ -42,9 +42,11 @@ def heal_inner_n(s, heal_2nd_plus_with_ellipses=False):
     if "\n" in s:
         if s.count("\n") > 1 and heal_2nd_plus_with_ellipses:
             return (
-                s.split("\n")[0] + ": " + "...".join(s.split("\n")[1:])
-                # " -- ".join(s.split("\n")[1:]
-                # )
+                (s.split("\n")[0] + ": " + "...".join(s.split("\n")[1:]))
+                # Don't end on ellipses
+                .strip()
+                .strip("...")
+                .strip()
             )
         return s.split("\n")[0] + ": " + s.split("\n")[-1]
     return s
