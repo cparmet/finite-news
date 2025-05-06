@@ -25,7 +25,7 @@ def dedup(li):
     return [x for x in li if not (x in seen or seen.add(x))]
 
 
-def heal_inner_n(s, heal_2nd_plus_with_ellipses=False):
+def heal_inner_n(s, heal_2nd_plus_n_with_ellipses=False):
     """Replace one or more inner \n with a colon.
 
     NOTES
@@ -33,14 +33,17 @@ def heal_inner_n(s, heal_2nd_plus_with_ellipses=False):
 
     ARGUMENTS
     s (str): A string with or without one or more \n in the middle
-    heal_2nd_plus_with_ellipses (bool): If True, and there are more than one \n, replace the second \n and beyond with "..."
+    heal_2nd_plus_n_with_ellipses (bool): If True, and there are more than one \n, replace the second \n and beyond with "..."
 
     RETURNS
     string with any \n in the middle replaced with a ": "
     """
 
-    if "\n" in s:
-        if s.count("\n") > 1 and heal_2nd_plus_with_ellipses:
+    if s.count("\n") == 1:
+        return s.split("\n")[0] + ": " + s.split("\n")[-1]
+    if s.count("\n") > 1:
+        # Heal first \n with colon, rest with ...
+        if heal_2nd_plus_n_with_ellipses:
             return (
                 (s.split("\n")[0] + ": " + "...".join(s.split("\n")[1:]))
                 # Don't end on ellipses
@@ -48,7 +51,9 @@ def heal_inner_n(s, heal_2nd_plus_with_ellipses=False):
                 .strip("...")
                 .strip()
             )
-        return s.split("\n")[0] + ": " + s.split("\n")[-1]
+        else:
+            # Heal first \n with colon, drop text after subsequent \n
+            return s.split("\n")[0] + ": " + s.split("\n")[1]
     return s
 
 
@@ -126,8 +131,8 @@ def postprocess_scraped_content(items, source):
             items = [
                 heal_inner_n(
                     s=item,
-                    heal_2nd_plus_with_ellipses=source.get(
-                        "heal_2nd_plus_with_ellipses", False
+                    heal_2nd_plus_n_with_ellipses=source.get(
+                        "heal_2nd_plus_n_with_ellipses", False
                     ),
                 )
                 for item in items
