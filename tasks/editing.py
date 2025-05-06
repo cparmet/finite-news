@@ -52,7 +52,7 @@ def heal_inner_n(s, heal_2nd_plus_n_with_ellipses=False):
                 .strip()
             )
         else:
-            # Heal first \n with colon, drop text after subsequent \n
+            # Heal first \n with colon, drop text starting at subsequent \n
             return s.split("\n")[0] + ": " + s.split("\n")[1]
     return s
 
