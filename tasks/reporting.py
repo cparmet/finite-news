@@ -160,7 +160,7 @@ def scrape_source(source, requests_timeout, retry=True):
             items = items[0].findNext(source["tag_next"])
 
         if "detail_page_root" in source:
-            # Scrape a child page. We have to go depper!
+            # Scrape a child page. We have to go deeper!
             detail_link = items[0].attrs["href"]
             header = items[0].get_text().strip()
             # Request a detail page
