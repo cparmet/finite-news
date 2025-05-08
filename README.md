@@ -102,16 +102,14 @@ Finite News is Python code that's set up as a Google Cloud Run job. It could be 
     1. To add, remove, or update dependencies, use [`uv` commands](https://docs.astral.sh/uv). 
         - If you haven't used `uv` before, it's awesome. Use its commands like you would use `pip` or `conda`. 
     2. To deply new code to the Google Cloud job:
-        1. Commit code changes to your local git repo.
-            - When you commit, a `uv` pre-commit will update the `requirements.txt` file if any dependencies have changed. 
-        2. Run `./deploy-finite-news.sh` to deploy the new code. 
-            - This will build a new version of the container, upload it to the Google Cloud's Artifact Registry, and point the existing Cloud Run job to the new version of the container.
-            - The deployment will use the `.python-version` and `requirements.txt` files to install the right version of Python and the dependencies in the container.
-        3. If you set up a Scheduler Trigger to run the job on a schedule, no changes should be needed! 
+        1. Run `./deploy-finite-news.sh`.
+            - This will build a new version of the Docker container, upload it to the Google Cloud's Artifact Registry, and point the existing Cloud Run job to the new version of the container.
+        2. If you set up a Scheduler Trigger to run the job on a schedule, no changes should be needed! 
             - The job should automatically point to the new version of the container.
-        4. You may want to delete the old version of the container in the Artifact Registry, if you don't need it. 
-            - Cuz they charge you keeping containers up there, like a storage unit.
-        5. See previous section for tips on testing a new deployment.
+        3. You may want to delete the old version of the container in the Artifact Registry, if you don't need it. Or set up auto-cleanup.
+            - Cuz they charge you for keeping containers up there.
+  
+See previous section for tips on testing a new deployment.  
   
 ### Designing your newspaper
 🚨🚨 Comply with the Terms of Service of your sources and APIs.  
