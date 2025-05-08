@@ -31,9 +31,15 @@ RUN apt-get update && apt-get install -y \
     libappindicator3-1 \
     xdg-utils
 
-# Copy requirements and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install uv
+RUN pip install uv
+
+# Copy project files
+COPY pyproject.toml .
+COPY uv.lock .
+
+# Install dependencies using uv
+RUN uv pip install --system .
 
 # Copy the rest of the application
 COPY . .

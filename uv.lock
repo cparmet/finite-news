@@ -587,6 +587,7 @@ dependencies = [
     { name = "sendgrid" },
     { name = "sentence-transformers" },
     { name = "torch" },
+    { name = "urllib3", extra = ["socks"] },
     { name = "yfinance" },
 ]
 
@@ -618,6 +619,7 @@ requires-dist = [
     { name = "sendgrid", specifier = ">=6.11.0" },
     { name = "sentence-transformers", specifier = ">=3.2.1" },
     { name = "torch", specifier = "==2.2" },
+    { name = "urllib3", extras = ["socks"], specifier = "==2.3.0" },
     { name = "yfinance", specifier = ">=0.2.54" },
 ]
 
