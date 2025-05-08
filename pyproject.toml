@@ -3,7 +3,7 @@ name = "finite-news"
 version = "2.0"
 description = "Mindful personalized email news"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "beautifulsoup4>=4.12.3",
     "emoji>=2.14.0",
@@ -20,6 +20,7 @@ dependencies = [
     "sendgrid>=6.11.0",
     "sentence-transformers>=3.2.1",
     "torch==2.2",
+    "urllib3[socks]==2.3.0",
     "yfinance>=0.2.54",
 ]
 
