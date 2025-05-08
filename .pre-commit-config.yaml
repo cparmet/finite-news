@@ -6,13 +6,6 @@ repos:
     hooks:
       - id: uv-lock
 
-  # # Auto-export uv.lock to requirements.txt
-  # - repo: https://github.com/astral-sh/uv-pre-commit
-  #   # uv version.
-  #   rev: 0.5.13
-  #   hooks:
-  #     - id: uv-export
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.4
     hooks:
