@@ -90,6 +90,13 @@ forecast:
   # lon: FLOAT
   # location_name: STRING
 
+  # OPTION C: German forecasts (GWS)
+
+  # source: gws # "German Weather Service"
+  # forecast_file: STRING # the name of the html file on "https://opendata.dwd.de/weather/text_forecasts/html/", the "LATEST" file for the desired region. e.g. "VHDL54_DWHH_LATEST_html"
+  # location_name: STRING # In your own words, e.g. Hamburg
+  # api_timeout: 30
+
 # The newspaper slogan that goes under the logo in each issue.
 # One slogan from the list is selected at random each day.
 # Edit or expand the list as you like.
