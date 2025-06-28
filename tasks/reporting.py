@@ -425,15 +425,26 @@ def research_source(source, requests_timeout):
             # Extract media_thumbnail and summary keys
             elif source.get("media_thumbnail_and_summary", False):
                 entries = feedparser.parse(source["url"]).entries
+                summaries = [
+                    entry.get("summary", "")
+                    for entry in entries
+                    if "media_thumbnail" in entry
+                ]
+                if cant_contain := source.get("summary_cant_contain", None):
+                    summaries = [
+                        summary if cant_contain not in summary else ""
+                        for summary in summaries
+                    ]
                 items = [
                     f"""
                         <h4>{source.get("header","")}</h4>
                         <img src="{entry["media_thumbnail"][0].get("url", None)}">
-                        <p>{entry.get("summary", None)}</p>
-                        <p><i>{entry.get("author", None)}</i></p>
+                        <p>{summary}</p>
+                        <p><i>{entry.get("author", "")}</i></p>
                         """
-                    for entry in entries
+                    for entry, summary in zip(entries, summaries)
                     if "media_thumbnail" in entry
+                    and entry["media_thumbnail"][0].get("url", None)
                 ]
             # Extract the media_content key
             else:
