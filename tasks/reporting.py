@@ -26,7 +26,7 @@ HEADERS = {
 }
 
 
-def create_calendar_sitemap_url(base_url, path_format, substract_one_day):
+def create_calendar_sitemap_url(source):
     """Generate a URL for sites that organize content chronologically in site-map.
 
     Useful for sites where there's no good way to ensure a page with headlines ordered by recency,
@@ -41,18 +41,22 @@ def create_calendar_sitemap_url(base_url, path_format, substract_one_day):
     RETURNS
     string with fully specified url to the date desired, e.g. "http://www.website.com/sitemap/2024/august/5"
     """
+
     target_date = (
-        date.today() - timedelta(days=1) if substract_one_day else date.today()
+        date.today() - timedelta(days=1)
+        if source.get("calendar_sitemap_subtract_one_day", False)
+        else date.today()
     )
     return (
-        base_url
-        + path_format
+        source["url"]
+        + source.get("calendar_sitemap_format")
         # Replace supported
         .replace("full_year", str(target_date.year))
         .replace("month_lower", target_date.strftime("%B").lower())
         # Initial-capitalized
         .replace("month_title_case", target_date.strftime("%B").title())
         .replace("day", str(target_date.day))
+        + ("/" if source.get("calendar_sitemap_add_trailing_slash", False) else "")
     )
 
 
@@ -69,18 +73,12 @@ def scrape_source(source, requests_timeout, retry=True):
 
     """
     try:
-        if source.get("use_selenium", False):
-            return scrape_text_with_selenium(source)
-
         if "calendar_sitemap_format" in source:
-            url = create_calendar_sitemap_url(
-                source["url"],
-                source.get("calendar_sitemap_format"),
-                source.get("calendar_sitemap_subtract_one_day", False),
-            )
+            url = create_calendar_sitemap_url(source)
         else:
             url = source["url"]
-
+        if source.get("use_selenium", False):
+            return scrape_text_with_selenium(source)
         if source.get("specify_request_headers", False):
             headers = HEADERS
         else:
