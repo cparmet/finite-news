@@ -67,7 +67,7 @@ def email_issue(sender, subscriber_email, html, images):
         malijet_pw = get_fn_secret("MAILJET_SECRET_KEY")
         mailjet = Client(auth=(mailjet_un, malijet_pw))
         response = mailjet.send.create(data=email_data)
-        if response.status_code == 202:
+        if response.status_code == 200:
             logging.info(f"{subscriber_email}: Extry extry! Email is away!")
         else:
             try:
