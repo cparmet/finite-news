@@ -154,10 +154,10 @@ def format_issue(issue_config, content, log_stream=None):
         f"<h3>🪩 Upcoming events</h3>{content['events_html']}",
         condition=content["events_html"],
     )
-    # Reference the cids of images attached to email
+    # Reference the cids (filenames) of images attached to email
     stocks_block = "".join(
         [
-            f"<img src='cid:image_{i}', alt='image_{i}'><br>"
+            f"<img src='cid:image_{i}.png', alt='image_{i}.png'><br>"
             for i in range(0, len(content["stock_plots"]))
         ]
     )

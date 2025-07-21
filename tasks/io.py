@@ -65,7 +65,12 @@ def get_fn_secret(secret_key):
     """
 
     try:
-        return os.getenv(secret_key)
+        secret = os.getenv(secret_key)
+        if secret:
+            return secret
+        else:
+            logging.critical(f"Value of secret {secret_key} was None.")
+            return secret
     except Exception as e:
         logging.critical(f"Failed to get secret {secret_key}. {type(e)}: {e}")
         raise e
