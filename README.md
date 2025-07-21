@@ -40,11 +40,14 @@ Finite News is Python code that's set up as a Google Cloud Run job. It could be 
     - Create a new Google Cloud project for Finite News.
     - Install the [gcloud command line utility](https://cloud.google.com/sdk/docs/install) on your computer.
 4. Make a new Google Cloud bucket. Add the files you created in "Designing your newspaper"
-5. Create an account on `sendgrid.com`. This lets you send the emails (via an API).
+5. Create an account on `mailjet.com`. This lets you send the emails via their API.
+    - At the time of writing, Mailjet has a generous free tier. 
+    - Set up your account for API email sending as instructed on their website, and get an API key (the username for API calls) and Secret Key (password). 
 6. Store your secrets. 
     - You'll need the following secrets:
-        - `SENDGRID_API_KEY`
         - `FN_BUCKET_NAME`
+        - `MAILJET_API_KEY`
+        - `MAILJET_SECRET_KEY`
         - (Optional) `OPENAI_API_KEY` if you optional add GPT to filter headlines (see below).
         - Any API keys you signed up for custom news sources
     - Store each secret in two places:

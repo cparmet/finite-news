@@ -1,7 +1,6 @@
 """📰 Publishing functions to deliver the news"""
 
-from sendgrid import Attachment, SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from mailjet_rest import Client
 from datetime import date, datetime
 import logging
 import os
@@ -30,10 +29,10 @@ from tasks.weather import get_forecast
 
 
 def email_issue(sender, subscriber_email, html, images):
-    """Send issue of Finite News to a subscriber by email using the SendGrid API service.
+    """Send issue of Finite News to a subscriber by email using the Mailjet API.
 
     NOTE
-    Requires a secret/environment variable for SENDGRID_API_KEY. See README.md.
+    Requires a secret/environment variable for MAILJET_API_KEY and MALIJET_SECRET_KEY. See README.md.
 
     ARGUMENTS
     sender (dict): Metadata about the email source, with keys for "subject" and "email"
@@ -46,31 +45,44 @@ def email_issue(sender, subscriber_email, html, images):
     """
 
     today = date.today().strftime("%m.%d.%y").lstrip("0")
-    message = Mail(
-        from_email=sender["email"],
-        to_emails=subscriber_email,
-        subject=f"{sender['subject']} for {today}",
-        html_content=html,
-    )
-    attachments = []
-    for i, image in enumerate(images):
-        attachedFile = Attachment(
-            disposition="inline",
-            file_name=f"image_{i}.png",
-            file_type="image/png",
-            file_content=image,
-            content_id=f"image_{i}",
-        )
-        attachments.append(attachedFile)
-    message.attachment = attachments
+    email_data = {
+        "FromEmail": sender["email"],
+        "FromName": "Finite News",
+        "Subject": f"{sender['subject']} for {today}",
+        "Html-part": html,
+        "Recipients": [{"Email": subscriber_email}],
+    }
+    if images:
+        email_data["Inline_attachments"] = [
+            {
+                "Content-type": "image/png",
+                # Filname doubles as content id (cid) referenced in HTML
+                "Filename": f"image_{i}.png",
+                "content": image,
+            }
+            for i, image in enumerate(images)
+        ]
     try:
-        sendgrid_key = get_fn_secret("SENDGRID_API_KEY")
-        sg = SendGridAPIClient(sendgrid_key)
-        response = sg.send(message)
+        mailjet_un = get_fn_secret("MAILJET_API_KEY")
+        malijet_pw = get_fn_secret("MAILJET_SECRET_KEY")
+        mailjet = Client(auth=(mailjet_un, malijet_pw))
+        response = mailjet.send.create(data=email_data)
         if response.status_code == 202:
             logging.info(f"{subscriber_email}: Extry extry! Email is away!")
+        else:
+            try:
+                json = response.json()
+            except Exception as e:
+                json = f"Could not decode JSON: {e}"
+
+            logging.critical(
+                f"{subscriber_email}: Error in send_email: Response code {response.status_code}, reason: {response.reason}. JSON: {json}"
+            )
+            print(response.status_code, response.reason, json)
+
     except Exception as e:
         # Admin issue will get this logging line in its email about failures in prior, non-admin issues.
+        print(e)
         logging.critical(
             f"{subscriber_email}: Error in send_email: {str(type(e))}, {str(e)}"
         )

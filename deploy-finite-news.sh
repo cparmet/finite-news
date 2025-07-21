@@ -16,7 +16,8 @@ gcloud run jobs deploy $JOB_NAME \
     --max-retries 0 \
     --region $FN_REGION \
     --project=$FN_PROJECT_ID \
-    --set-secrets=FN_BUCKET_NAME=FN_BUCKET_NAME:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,SENDGRID_API_KEY=SENDGRID_API_KEY:latest \
+    --set-secrets=FN_BUCKET_NAME=FN_BUCKET_NAME:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,MAILJET_API_KEY=MAILJET_API_KEY:latest,
+    MAILJET_SECRET_KEY=MAILJET_SECRET_KEY:latest \
     --memory="2Gi" \
     --task-timeout="45m"
     
