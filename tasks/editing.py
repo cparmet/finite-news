@@ -554,9 +554,6 @@ def edit_headlines(
         clean_headline(headline, enforce_trailing_period)
         for headline in edited_headlines
     ]  # Do after removing repeats, since we cache the raw uncleaned
-    for keyword in issue_config["editorial"]["one_headline_keywords"]:
-        # NOTE: No list comprehension because each cycle can change edited_headlines
-        edited_headlines = apply_one_headline_keyword_filter(edited_headlines, keyword)
     if edited_headlines and filter_for_substance:
         edited_headlines = apply_substance_rules(
             edited_headlines, issue_config["editorial"]["substance_rules"]
@@ -569,7 +566,7 @@ def edit_headlines(
             )
         else:
             logging.info("Did not apply LLM substance model. GPT not configured.")
-    # Finally, smart deduplicate (by semantic similarity) the remaining headlines, that are individually fine options.
+    # Smart deduplicate (by semantic similarity) the remaining headlines, that are individually fine options.
     # TODO: Better to instead add prefaces after all this editing
     if edited_headlines and smart_dedup_model:
         prefaces_to_ignore = [
@@ -582,5 +579,9 @@ def edit_headlines(
             issue_config["editorial"]["smart_deduper"],
             prefaces_to_ignore,
         )
+    # Remove headlines that repeat a forbidden keyword
+    for keyword in issue_config["editorial"]["one_headline_keywords"]:
+        # NOTE: No list comprehension because each cycle can change edited_headlines
+        edited_headlines = apply_one_headline_keyword_filter(edited_headlines, keyword)
     logging.info("Edited headlines: " + str(edited_headlines))
     return edited_headlines
