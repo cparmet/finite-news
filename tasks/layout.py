@@ -167,17 +167,16 @@ def format_issue(issue_config, content, log_stream=None):
         f"<h3>💰 Financial update</h3>{stocks_block}",
         condition=stocks_block,
     )
-    # Create an HTML item for each image from get_screenshots().`
+    # Create an HTML item for each image from get_screenshots().
     # Increment cids if stock plots already attached to email
     # since cid is the order of the attachment to the email
 
+    cids = range(0, len(content["images"]) - len(content["stock_plots"]))
+    cids_and_headings = zip(cids, content["screenshot_headings"])
     images_block = "".join(
         [
-            f"<h4>{screenshot_heading}</h4><img src='cid:image_{cid_i + len(content['stock_plots'])}', alt='image_{cid_i + len(content['stock_plots'])}'><br>"
-            for cid_i, screenshot_heading in zip(
-                range(0, len(content["images"]) - len(content["stock_plots"])),
-                content["screenshot_headings"],
-            )
+            f"<h4>{screenshot_heading}</h4><img src='cid:image_{cid_i + len(content['stock_plots'])}.png', alt='image_{cid_i + len(content['stock_plots'])}.png'><br>"
+            for cid_i, screenshot_heading in cids_and_headings
         ]
     )
     image_urls_block = "".join(content["image_urls"])
