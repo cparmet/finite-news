@@ -154,7 +154,7 @@ def load_publication_config(
         "email_delivery": not dev_mode,  # If dev_mode is True, don't send emails
         "sender": publication_config["sender"],
         "layout": {
-            "template_html": load_file_from_bucket("template.htm", "r"),
+            "template_html": load_file_from_bucket("template.htm"),
             "logo_url": publication_config["layout"]["logo_url"],
         },
         "editorial": {
