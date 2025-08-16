@@ -624,7 +624,12 @@ def get_car_talk_credit():
 def get_screenshots(sources, dev_mode=False):
     """Scrape images that require taking a screenshot with Selenium.
 
-    Returns: A list of dicts with {image: image as base64, heading: any header text to place above the image}
+    ARGUMENTS
+        sources (list): Screenshot source dicts from publication_config
+        dev_mode (bool): Whether to also save the image locally for debugging purposes
+
+    RETURNS
+        A list of dicts with {image: image as base64, heading: any header text to place above the image}
     """
     screenshots = []
     driver = None
