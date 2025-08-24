@@ -315,8 +315,12 @@ def scrape_text_with_selenium(source, driver=None):
                 driver.quit()
             return []
 
+        # Wait for sites that are rendered with JavaScript
+        sleep(source.get("delay_secs_for_js_render", 0))
+
         elements = [element.text for element in driver.find_elements(criteria, value)]
 
+        # Wait for elements that exist but are gradually loaded like dynamic images
         sleep(source.get("delay_secs_for_loading", 0))
 
         # Select only the single element the user wants, if requested
