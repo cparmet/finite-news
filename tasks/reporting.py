@@ -494,15 +494,18 @@ def research_source(source, requests_timeout):
                 body = ""
             items = [f"""{header}{img}{body}"""]
 
+        # Warn if no results were returned, if that was unexpected.
+        if len(items) == 0 and not source.get("exclude_from_0_results_warning", False):
+            logging.warning(
+                f"{source['name']}: retrieved 0 items before postprocessing. Source may be broken."
+            )
+            return []
+
         # Lightly postprocess results
         items = postprocess_scraped_content(items, source)
-
-        # Log count
-        if len(items) == 0 and not source.get("exclude_from_0_results_warning", False):
-            # Escalate to admin if no results were returned, and that was unexpected. Source's scraper/API may be broken.
-            logging.warning(f"{source['name']}: retrieved 0 items")
-        else:
-            logging.info(f"{source['name']}: retrieved {len(items)} items")
+        logging.info(
+            f"{source['name']}: retrieved {len(items)} items after postprocessing."
+        )
 
         # Add prefaces and return
         if source["type"] in ["headlines", "image_url"]:
