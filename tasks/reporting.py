@@ -642,6 +642,8 @@ def get_screenshots(sources, dev_mode=False):
     driver = None
     try:
         driver = load_selenium_driver()
+        # Ensure the window is large enough to capture images
+        driver.set_window_size(2000, 3000)
 
         ## Get the screenshot for each source
         for i, source in enumerate(sources):
@@ -668,6 +670,7 @@ def get_screenshots(sources, dev_mode=False):
                 )
 
             ## Get the screenshot
+            # Load the page
             driver.get(source["url"])
 
             # Find the requested element
@@ -691,13 +694,21 @@ def get_screenshots(sources, dev_mode=False):
                 logging.warning(
                     f"get_screenshots() was given unhandled criteria from {source}. No results scraped."
                 )
+
+            sleep(source.get("delay_secs_for_js_render", 0))
+
             elements = driver.find_elements(criteria, value)
 
             # For some dynamically generated images, scraping them too quickly leads to incompelte screenshots
             sleep(source.get("delay_secs_for_loading", 0))
+
             # Select the ith element, if present
             if len(elements) >= source["element_number"]:
                 chart_element = elements[source["element_number"] - 1]
+
+                # Scroll the element into view, in case it's "below the fold"
+                driver.execute_script("arguments[0].scrollIntoView();", chart_element)
+
                 # Take the screenshot
                 screenshot_b64 = chart_element.screenshot_as_base64
                 screenshots.append(
