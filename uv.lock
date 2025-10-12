@@ -434,23 +434,20 @@ wheels = [
 
 [[package]]
 name = "env-canada"
-version = "0.11.2"
+version = "0.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "geopy" },
-    { name = "imageio" },
     { name = "lxml" },
-    { name = "numpy", version = "1.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pandas" },
     { name = "pillow" },
     { name = "python-dateutil" },
     { name = "voluptuous" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2d/46/0982a10616716915b918bae5ef2376ae449e3a79868c1e317c068ca4b05e/env_canada-0.11.2.tar.gz", hash = "sha256:d1d73ee965e39e59a274d1cc795df6f3c65c5ee7f52879796549065bbe86f355", size = 31999, upload-time = "2025-06-08T23:51:31.808Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/24/1e8d7c3b3b88ac18893e926dba7d46715e88024e4024f07aad35bafb748e/env_canada-0.12.0.tar.gz", hash = "sha256:f3b3e078b78c4c247b929773f976f031163f3cca4511f57a24a52669051c6c6c", size = 32247, upload-time = "2025-10-12T00:07:04.08Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3f/af/ba3a8ac1ffe57d71a4c07c07299dcb2796cb44f4dbb68a247099dbf7ee49/env_canada-0.11.2-py3-none-any.whl", hash = "sha256:cd986abe1409c7b5f7fddc53b2cb41c0284f9b26d346c8929876066c2129de48", size = 31062, upload-time = "2025-06-08T23:51:30.398Z" },
+    { url = "https://files.pythonhosted.org/packages/fb/73/16142a5dce20f1073a873b8e139309e91b34f56eec31986cb8f8455a573e/env_canada-0.12.0-py3-none-any.whl", hash = "sha256:e01ad6d369f6ef8f3999c3a24edc7f0df242dbd3467b64f8678ae59abc399d82", size = 27491, upload-time = "2025-10-12T00:07:03.174Z" },
 ]
 
 [[package]]
@@ -522,7 +519,7 @@ dev = [
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.12.3" },
     { name = "emoji", specifier = ">=2.14.0" },
-    { name = "env-canada", specifier = ">=0.11.2" },
+    { name = "env-canada", specifier = ">=0.12.0" },
     { name = "feedparser", specifier = ">=6.0.11" },
     { name = "gcsfs", specifier = ">=2024.10.0" },
     { name = "google-auth", specifier = ">=2.37.0" },
@@ -883,20 +880,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f1/70/7703c29685631f5a7590aa73f1f1d3fa9a380e654b86af429e0934a32f7d/idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9", size = 190490, upload-time = "2024-09-15T18:07:39.745Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3", size = 70442, upload-time = "2024-09-15T18:07:37.964Z" },
-]
-
-[[package]]
-name = "imageio"
-version = "2.36.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy", version = "1.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "pillow" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/70/aa/2e7a49259339e691ff2b477ae0696b1784a09313c5872700bbbdd00a3030/imageio-2.36.1.tar.gz", hash = "sha256:e4e1d231f47f9a9e16100b0f7ce1a86e8856fb4d1c0fa2c4365a316f1746be62", size = 389522, upload-time = "2024-11-28T08:11:57.315Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/5c/f9/f78e7f5ac8077c481bf6b43b8bc736605363034b3d5eb3ce8eb79f53f5f1/imageio-2.36.1-py3-none-any.whl", hash = "sha256:20abd2cae58e55ca1af8a8dcf43293336a59adf0391f1917bf8518633cfc2cdf", size = 315435, upload-time = "2024-11-28T08:11:55.641Z" },
 ]
 
 [[package]]
