@@ -12,8 +12,7 @@ from tasks.reporting import scrape_source
 def get_nws_forecast(nws_config):
     """Use National Weather Service API to get local forecast.
 
-    NOTE: We use a fixed timeout for this API request, overriding publication_config's requests_timeout parameter.
-    The value here is based on experience with NWS possibly needing a number of API attempts to get a response
+    NOTE: We use a different timeout for this API request, overriding publication_config's requests_timeout parameter. The value here is based on experience with NWS possibly needing a number of API attempts to get a response
 
     ARGUMENTS
     nws_config (dict): Parameters for calling the NWS API, including keys for:
@@ -25,21 +24,28 @@ def get_nws_forecast(nws_config):
     RETURNS
     Dict with attributes of the forecast retrieved, or None if there was a problem.
     """
-
     MAX_ATTEMPTS = nws_config.get("max_attempts", 10)
     SNOOZE_BAR = nws_config.get("api_snooze_bar", 30)
     try:
         attempts = 1
-        while attempts < MAX_ATTEMPTS:
+        while attempts <= MAX_ATTEMPTS:
+            r = None
             url = f"https://api.weather.gov/gridpoints/{nws_config['office']}/{nws_config['grid_x']},{nws_config['grid_y']}/forecast"
-            r = requests.get(url, timeout=nws_config.get("timeout", 10))
-            if r.status_code == 200:
-                break
-            else:
-                attempts += 1
+            try:
+                r = requests.get(url, timeout=nws_config.get("timeout", 10))
+                if r.status_code == 200:
+                    break
+            except Exception as e:
+                logging.info(f"Exception during NWS API request: {e}, {str(e)}")
+            attempts += 1
+            if attempts <= MAX_ATTEMPTS:
+                # Log the retry
+                status_code = r.status_code if r else None
                 logging.info(
-                    f"Weather request {r.status_code}. Wait {SNOOZE_BAR} seconds and retry, take # {attempts} ..."
+                    f"Weather request {status_code}. Wait {SNOOZE_BAR} seconds and retry, attempt # {attempts} of {MAX_ATTEMPTS}  ..."
                 )
+
+                # Cooling off period before hitting the API again
                 sleep(SNOOZE_BAR)
 
         # Get the next daytime forecast
@@ -78,7 +84,7 @@ def get_nws_forecast(nws_config):
             )
         except UnboundLocalError:
             logging.warning(
-                f"Forecast error after {attempts} attempts: {str(type(e))}, {str(e)}. requests.get() did not return a response r."
+                f"Forecast error after {attempts} attempts: {str(type(e))}, {str(e)}. requests.get() never returned a response."
             )
         return None
 

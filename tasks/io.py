@@ -579,12 +579,17 @@ def load_subscriber_config(subscriber_config_file_name, publication_config):
         subscriber_config["sources"]
     )
     issue["sports"] = subscriber_config.get("sports", {})
-    issue["forecast"] = subscriber_config.get("forecast", {})
-    if issue["forecast"]:
-        issue["forecast"]["api_snooze_bar"] = publication_config["forecast"].get(
-            "api_snooze_bar", None
+    if subscriber_config.get("forecast", None):
+        # If subscriber has a forecast section, combine settings from publication config
+        issue["forecast"] = dict(
+            # Start with default forecast settings from publication config, if they exist
+            **(issue.get("forecast", {})),
+            # Override any keys, and add any novel keys, that are in subscriber's config
+            **subscriber_config.get("forecast", {}),
         )
-
+    else:
+        # Remove settings prepopulated from publication config
+        issue["forecast"] = {}
     issue["slogans"] = subscriber_config["slogans"]
     if publication_config["editorial"]["enable_thoughts_of_the_day"]:
         issue["thoughts_of_the_day"] = subscriber_config.get("thoughts_of_the_day", [])
