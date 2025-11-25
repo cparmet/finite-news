@@ -598,9 +598,22 @@ def get_screenshots(sources, dev_mode=False):
 
     except Exception as e:
         print(e)
-        logging.warning(
-            f"Error in get_screenshots() on {source['url']}: {str(type(e))}, {str(e)}"
-        )
+        try:
+            logging.warning(
+                f"""
+                Error in get_screenshots(): {str(type(e))}, {str(e)}
+
+                Occurred in source: {source['url']}
+
+                """
+            )
+        except UnboundLocalError:
+            logging.warning(
+                f"""
+            Error in get_screenshots(): {str(type(e))}, {str(e)}
+            """
+            )
+
         return []
 
     if driver:
