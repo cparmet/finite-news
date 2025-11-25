@@ -12,3 +12,4 @@ app.log
 screenshots_*
 */chromedriver*
 */archive/*
+.vscode/
