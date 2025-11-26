@@ -12,7 +12,7 @@ from sentence_transformers import SentenceTransformer
 import yaml
 
 
-def init_logging(logging_level, dev_mode):
+def init_logging(dev_mode):
     """Initialize logging to either
         * (default) in-memory object (for optional delivery in admin's issue of Finite News) or
         * (if dev_mode=True) a local log file
@@ -21,12 +21,12 @@ def init_logging(logging_level, dev_mode):
     Reminder: This function doesn't reset an active log. If you're running in a notebook environment, such as dev.ipynb, must restart the kernel.
 
     ARGUMENTS
-    logging_level (str): The granularity of logging messages, 'warning', 'info' or 'debug'. If dev_mode=True, forced to 'debug'
     dev_mode (bool): If False, we're in prod mode and logs will go to log_stream. If True, will send logs to local file
 
     RETURNS
     If dev_mode=False, returns in-memory file-like object (StreamIO) that collects results from logging during the Finite News run
     """
+    logging_level = os.environ.get("LOGGING_LEVEL", "warning")
 
     if logging_level == "warning":
         level = logging.WARNING
@@ -34,6 +34,9 @@ def init_logging(logging_level, dev_mode):
         level = logging.INFO
     elif logging_level == "debug":
         level = logging.DEBUG
+    else:
+        print(f"Unhandled logging level: {logging_level}")
+        level = logging.WARNING
 
     if dev_mode:
         # Local file

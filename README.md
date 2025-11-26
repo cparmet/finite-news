@@ -97,8 +97,10 @@ Finite News is Python code that's set up as a Google Cloud Run job. It could be 
         - You can run the job! Either
             - Execute the new job as a one-off using the [Google Cloud Console](https://console.cloud.google.com/run/jobs) or gcloud command line.
             - Or create a [Scheduler Trigger](https://console.cloud.google.com/run/jobs) to run the job on a schedule, such as once a day.
-    - (Optional) To test a new deployment, you can set the environment variable in the Google Cloud Run Job `ONLY_EMAIL_SUBSCRIBER: <email address>`. Then when you run the job, it will only send an email to that email address, such as a test or admin account.
-        - When the environment variable is missing, the job will send an email to all subscribers.
+    - Optional environment variables:
+        - To test a new deployment, you can add an environment variable in the Google Cloud Run Job `ONLY_EMAIL_SUBSCRIBER: <email address>`. Then when you run the job, it will only send an email to that email address, such as a test or admin account.
+        - You can change the environment variable LOGGING_LEVEL to "warning" (default), "info", or "debug".
+  
 ### Changing your newspaper
 * **To updating the configuration** (such as adding a new subscriber config file or changing the `publication_config.yml`): Upload the changed/new files to your existing Google Cloud Storage bucket.
 * **To update the code:**
