@@ -293,7 +293,7 @@ def create_issue(issue_config, log_stream, smart_dedup_model=None, dev_mode=Fals
     return html, images
 
 
-def run_finite_news(dev_mode=True, disable_gpt=True, logging_level="warning"):
+def run_finite_news(dev_mode=True, disable_gpt=True):
     """Entry point to create and deliver issues to all subscribers of Finite News.
 
     ARGUMENTS
@@ -302,10 +302,6 @@ def run_finite_news(dev_mode=True, disable_gpt=True, logging_level="warning"):
         - don't cache new headlines for later dedup
         - output plots to local files
     disable_gpt (bool): If True, don't call the GPT API and incur costs, for example during dev or debug cycles.
-    logging_level (level from logging library): The deepest granularity of log messages to track
-        - Use "warning" by default
-        - Use "info" to get more detailed FN messages for debugging
-        - Use "debug" to get lower-level messages from dependencies
 
     RETURNS
     None
@@ -325,7 +321,7 @@ def run_finite_news(dev_mode=True, disable_gpt=True, logging_level="warning"):
     else:
         from tqdm import tqdm
 
-    log_stream = init_logging(logging_level, dev_mode)
+    log_stream = init_logging(dev_mode)
     publication_config = load_publication_config(
         dev_mode=dev_mode, disable_gpt=disable_gpt
     )

@@ -17,6 +17,7 @@ gcloud run jobs deploy $JOB_NAME \
     --region $FN_REGION \
     --project=$FN_PROJECT_ID \
     --set-secrets=FN_BUCKET_NAME=FN_BUCKET_NAME:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,MAILJET_API_KEY=MAILJET_API_KEY:latest,MAILJET_SECRET_KEY=MAILJET_SECRET_KEY:latest \
+    --set-env-vars=LOGGING_LEVEL="warning" \
     --memory="2Gi" \
     --task-timeout="45m"
     
