@@ -141,6 +141,9 @@ def scrape_calendar(calendar_config, requests_timeout):
 
     calendar_events = []
     page = 1
+    max_events = calendar_config.get("max_events", None)
+
+    # Iterate over calendar pages
     while True:
         page_soup = scrape_calendar_page(
             calendar_config,
@@ -148,16 +151,25 @@ def scrape_calendar(calendar_config, requests_timeout):
             page,
             requests_timeout,
         )
-        if page_soup:
-            page_events = [
-                extract_event_details(event_soup, calendar_config)
-                for event_soup in page_soup
-            ]
-            calendar_events.append(page_events)
-            page += 1
-        else:
-            # Flatten the nested list
+        if not page_soup:
+            # Page has no event elements. Presume we've reached the end of the calendar
+            # Return the flattened nested list
             return [item for sublist in calendar_events for item in sublist]
+
+        # There are more events to extract
+        page_events = [
+            extract_event_details(event_soup, calendar_config)
+            for event_soup in page_soup
+        ]
+        calendar_events.append(page_events)
+        # Check if we've exceeded max events
+        if max_events:
+            # First flatten nested list
+            flat_list = [item for sublist in calendar_events for item in sublist]
+            if len(flat_list) >= max_events:
+                return flat_list[: min(max_events, len(flat_list))]
+        # If not, try to scrape the next page
+        page += 1
 
 
 def format_event(event):
@@ -201,11 +213,6 @@ def get_calendar_events(calendar_config, requests_timeout):
 
     calendar_events = scrape_calendar(calendar_config, requests_timeout)
 
-    # Limit total events if requested
-    if calendar_config.get("max_events"):
-        calendar_events = calendar_events[
-            : min(calendar_config["max_events"], len(calendar_events))
-        ]
     return f"""
                 <table>
                     {''.join([format_event(event) for event in calendar_events])}
