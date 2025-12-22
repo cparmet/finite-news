@@ -63,9 +63,11 @@ def extract_event_details(event_soup, calendar_config):
         "link_url_class" in calendar_config
         and "link_url_child_key" in "calendar_config"
     ):
-        event["link_url"] = event_soup.find(
-            class_=calendar_config["link_url_class"]
-        ).get(calendar_config["link_url_child_key"], "")
+        event["link_url"] = (
+            event_soup
+            .find(class_=calendar_config["link_url_class"])
+            .get(calendar_config["link_url_child_key"], "")
+        )  # fmt: skip
     else:
         event["link_url"] = ""
 
@@ -102,7 +104,7 @@ def scrape_calendar_page(calendar_config, url_base, page, requests_timeout=None)
         else:
             if not requests_timeout:
                 raise AttributeError(
-                    f"scrape_calendar_page: use_selenium is False, so we're using requests, but no value passed for requests_timeout (required). Full source: {calendar_config}"
+                    f"use_selenium is False, so we're using requests, but no value passed for requests_timeout (required). Full source: {calendar_config}"
                 )
             response = requests.get(url, timeout=requests_timeout)
             html_str = response.text

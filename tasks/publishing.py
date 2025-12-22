@@ -328,10 +328,7 @@ def run_finite_news(dev_mode=True, disable_gpt=True):
     subscriber_configs = load_subscriber_configs(publication_config)
     smart_dedup_model = load_smart_dedup_model(
         publication_config["editorial"]
-        .get(
-            "smart_deduper",
-            {},
-        )
+        .get("smart_deduper", {})
         .get("path_to_model", None)
     )
 
