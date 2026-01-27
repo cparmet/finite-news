@@ -321,6 +321,29 @@ def research_source(source, requests_timeout):
                     if "media_thumbnail" in entry
                     and entry["media_thumbnail"][0].get("url", None)
                 ]
+            # Get subhead from 'title key and the first <img> tag inside `content[0][value]`
+            elif source.get("title_and_content_value", False):
+                entries = feedparser.parse(source["url"]).entries
+                items = []
+                for entry in entries:
+                    try:
+                        title = entry.get("title", "")
+                        soup = BeautifulSoup(
+                            entry["content"][0]["value"], features="lxml"
+                        )
+                        img_html = soup.find("img")
+                        items.append(
+                            f"""
+                            <h4>{source.get("header","")}</h4>
+                            <h5>{title}</h5>
+                            {img_html}
+                            """
+                        )
+                    except Exception as e:
+                        logging.warning(
+                            f"rss_image method encountered error in source {str(source['name'])}. {type(e)}: {e}"
+                        )
+
             # Extract the media_content key
             else:
                 urls = [
