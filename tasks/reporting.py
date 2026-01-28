@@ -140,12 +140,26 @@ def scrape_source(source, requests_timeout, retry=True):
             img_element = soup.find_all("img")[source.get("img_tag_number", 0)]
 
             src = img_element.attrs.get("src", None)
+
+            # Scrape the caption, optionally.
+            # Get the first item with caption_tag +- caption_tag_class
+            if "caption_tag" in source:
+                if "caption_tag_class" in source:
+                    attrs = {"class": source["caption_tag_class"]}
+                else:
+                    attrs = None
+                caption = soup.find(source["caption_tag"], attrs).text
+            else:
+                caption = None
+
             if src:
                 items = [
                     f"""
-                            <h4>{source.get("header","")}</h4>
-                            <img src="{src}">"""
-                ]
+                        <h4>{source.get("header","")}</h4>
+                        <img src="{src}">
+                        <p>{caption}</p>
+                    """
+                ]  # fmt: skip
             else:
                 items = []
 
