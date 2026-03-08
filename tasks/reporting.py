@@ -382,28 +382,33 @@ def research_source(source, requests_timeout):
             )
 
         elif source["method"] == "atom":
-            newest_entry = feedparser.parse(source["url"]).entries[0]
-            if "header_path" in source:
-                header = newest_entry
-                for node in source["header_path"]:
-                    header = header[node]
-                header = f"<h4>{source.get('header_preface', '')}{header}</h4>"
-            else:
-                header = ""
-            if "image_path" in source:
-                img = newest_entry
-                for node in source["image_path"]:
-                    img = img[node]
-            else:
-                img = ""
-            if "body_path" in source:
-                body = newest_entry
-                for node in source["body_path"]:
-                    body = body[node]
-                body = f"<p>{body}</p>"
-            else:
-                body = ""
-            items = [f"""{header}{img}{body}"""]
+            entries = feedparser.parse(source["url"]).entries
+            if source.get("max_items"):
+                # Truncate list if necessary
+                entries = entries[0 : source["max_items"]]
+            items = []
+            for entry in entries:
+                if "header_path" in source:
+                    header = entry
+                    for node in source["header_path"]:
+                        header = header[node]
+                    header = f"<h4>{source.get('header_preface', '')}{header}</h4>"
+                else:
+                    header = ""
+                if "image_path" in source:
+                    img = entry
+                    for node in source["image_path"]:
+                        img = img[node]
+                else:
+                    img = ""
+                if "body_path" in source:
+                    body = entry
+                    for node in source["body_path"]:
+                        body = body[node]
+                    body = f"{body}"
+                else:
+                    body = ""
+                items.append(f"""{header}{img}{body}""")
 
         # Warn if no results were returned, if that was unexpected.
         if len(items) == 0 and not source.get("exclude_from_0_results_warning", False):
