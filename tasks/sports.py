@@ -10,6 +10,15 @@ import requests
 from datetime import date, datetime, timedelta
 import pytz
 
+NBA_API_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Referer": "https://nba.com",
+    "Origin": "https://nba.com",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Connection": "keep-alive",
+}
+
 # Scoreboard inline CSS styles
 SCOREBOARD_FONT_FAMILY = """
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
@@ -54,7 +63,7 @@ def get_todays_nba_game(team_name, requests_timeout):
 
     try:
         url = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
-        r = requests.get(url, timeout=requests_timeout)
+        r = requests.get(url, headers=NBA_API_HEADERS, timeout=requests_timeout)
         schedule = r.json()
         schedule = schedule["leagueSchedule"]["gameDates"]
         games = []
@@ -250,7 +259,7 @@ def get_recent_completed_nba_game(team_name, requests_timeout):
 
     # Get the NBA schedule and game status
     url = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
-    r = requests.get(url, timeout=requests_timeout)
+    r = requests.get(url, headers=NBA_API_HEADERS, timeout=requests_timeout)
     schedule = r.json()
 
     # Find a completed game with our team that started within the last 24 hours
@@ -403,7 +412,9 @@ def get_nba_box_score(team_name, requests_timeout):
         box_url = (
             f"https://cdn.nba.com/static/json/liveData/boxscore/boxscore_{game_id}.json"
         )
-        box = requests.get(box_url, timeout=requests_timeout).json()["game"]
+        box = requests.get(
+            box_url, headers=NBA_API_HEADERS, timeout=requests_timeout
+        ).json()["game"]
         game_headline = get_nba_game_headline(box, team_name)
         quarter_table = build_nba_game_quarter_table(box)
         away_table = build_nba_game_player_stats_table(box["awayTeam"])
