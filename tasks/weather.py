@@ -27,26 +27,31 @@ def get_nws_forecast(nws_config):
     MAX_ATTEMPTS = nws_config.get("max_attempts", 10)
     SNOOZE_BAR = nws_config.get("api_snooze_bar", 30)
     try:
-        attempts = 1
-        while attempts <= MAX_ATTEMPTS:
+        attempts = 0
+        while attempts <= MAX_ATTEMPTS - 1:
+            attempts += 1
             r = None
             url = f"https://api.weather.gov/gridpoints/{nws_config['office']}/{nws_config['grid_x']},{nws_config['grid_y']}/forecast"
             try:
                 r = requests.get(url, timeout=nws_config.get("timeout", 10))
-                if r.status_code == 200:
+                status_code = r.status_code
+                if status_code == 200:
                     break
+                elif status_code == 404:
+                    logging.warning(
+                        f"404 error from NWS forecast API. Perhaps office, grid_x, or grid_y are no longer supported by the API and need to be updated? Config: {nws_config}. Response from NWS: {r.json()}."
+                    )
+                    return None
+
             except Exception as e:
                 logging.info(f"Exception during NWS API request: {e}, {str(e)}")
-            attempts += 1
-            if attempts <= MAX_ATTEMPTS:
-                # Log the retry
-                status_code = r.status_code if r else None
-                logging.info(
-                    f"Weather request {status_code}. Wait {SNOOZE_BAR} seconds and retry, attempt # {attempts} of {MAX_ATTEMPTS}  ..."
-                )
+                status_code = None
 
-                # Cooling off period before hitting the API again
-                sleep(SNOOZE_BAR)
+            # Log the retry, either from exception or bad status code
+            logging.info(
+                f"Weather request status code: {status_code}. Wait {SNOOZE_BAR} seconds and retry, attempt # {attempts} of {MAX_ATTEMPTS}  ..."
+            )
+            sleep(SNOOZE_BAR)  # Cool off before hitting the API again
 
         # Get the next daytime forecast
         # Traverse the list of forecast periods to find the first that isn't Overnight, ~Tuesday Night, Tonight, Evening

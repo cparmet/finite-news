@@ -13,3 +13,4 @@ screenshots_*
 */chromedriver*
 */archive/*
 .vscode/
+dev.ipynb
